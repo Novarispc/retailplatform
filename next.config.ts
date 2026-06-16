@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "image1.jdomni.in" },
       { protocol: "https", hostname: "content.jdmagicbox.com" },
       { protocol: "https", hostname: "cdn.shopify.com" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
     qualities: [60, 75, 90],
   },

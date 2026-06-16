@@ -50,7 +50,7 @@ function SpecEditor({ initial }: { initial?: { key: string; value: string }[] })
       </div>
       <input type="hidden" name="specsJson" value={JSON.stringify(specs)} />
       {specs.length === 0 && (
-        <p className="text-xs text-muted">No specifications. Click "Add spec" to add key-value attributes.</p>
+        <p className="text-xs text-muted">No specifications. Click &quot;Add spec&quot; to add key-value attributes.</p>
       )}
       <div className="space-y-2">
         {specs.map((row, i) => (

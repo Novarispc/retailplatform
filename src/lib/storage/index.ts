@@ -35,8 +35,30 @@ class MinioStorage implements StorageProvider {
   }
 }
 
+// Vercel Blob adapter for serverless/production. Active when BLOB_READ_WRITE_TOKEN is set.
+class VercelBlobStorage implements StorageProvider {
+  publicUrl(key: string) {
+    // Vercel Blob returns the full URL from putObject; this is only used as a fallback.
+    return key;
+  }
+
+  async putObject(key: string, body: Buffer, mimeType = "application/octet-stream") {
+    const { put } = await import("@vercel/blob");
+    const { url } = await put(key, body, {
+      access: "public",
+      contentType: mimeType,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    return url;
+  }
+}
+
 let provider: StorageProvider | null = null;
 export function getStorage(): StorageProvider {
-  if (!provider) provider = new MinioStorage();
+  if (!provider) {
+    provider = process.env.BLOB_READ_WRITE_TOKEN
+      ? new VercelBlobStorage()
+      : new MinioStorage();
+  }
   return provider;
 }

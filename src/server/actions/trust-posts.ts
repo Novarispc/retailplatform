@@ -1,22 +1,18 @@
 "use server";
 
-import * as fs from "fs";
-import * as path from "path";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { assert } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { getStorage } from "@/lib/storage";
 import { getActiveTenant } from "@/lib/tenant";
 import type { TrustPostType } from "@prisma/client";
 
 async function saveUploadedFile(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
-  const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  fs.writeFileSync(path.join(uploadsDir, filename), Buffer.from(bytes));
-  return `/uploads/${filename}`;
+  const ext = (file.name.split(".").pop()?.toLowerCase() || "mp4").replace(/[^a-z0-9]/g, "") || "mp4";
+  const key = `trust/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  return getStorage().putObject(key, Buffer.from(bytes), file.type || `video/${ext}`);
 }
 
 export async function createTrustPostAction(formData: FormData) {
