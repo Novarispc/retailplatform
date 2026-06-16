@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Shop all products",
-  description: "Browse cricket bats, combos, shoes and sports accessories at A Sports Zone — where the trust builds.",
+  description: "Browse cricket bats, combos, shoes and sports accessories at ASPORTS ZONE — where the trust builds.",
 };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;

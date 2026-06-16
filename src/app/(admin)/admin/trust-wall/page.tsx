@@ -81,7 +81,7 @@ export default async function TrustWallPage() {
             <label className="mb-1.5 block text-sm text-muted">Title (optional)</label>
             <input
               name="title"
-              placeholder="Great moment at A Sports Zone…"
+              placeholder="Great moment at ASPORTS ZONE…"
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm focus:border-[var(--accent)] focus:outline-none"
             />
           </div>

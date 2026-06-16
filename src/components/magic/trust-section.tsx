@@ -65,7 +65,7 @@ export async function TrustSection() {
                     allowFullScreen
                     className="h-full w-full"
                     loading="lazy"
-                    title={post.title ?? "A Sports Zone video"}
+                    title={post.title ?? "ASPORTS ZONE video"}
                   />
                 </div>
               ) : getInstagramEmbedUrl(post.url) ? (
@@ -76,7 +76,7 @@ export async function TrustSection() {
                     allowFullScreen
                     className="h-full w-full"
                     loading="lazy"
-                    title={post.title ?? "A Sports Zone Instagram video"}
+                    title={post.title ?? "ASPORTS ZONE Instagram video"}
                   />
                 </div>
               ) : isDirectVideoFileUrl(post.url) ? (
@@ -105,7 +105,7 @@ export async function TrustSection() {
                 <div className="relative aspect-square">
                   <Image
                     src={post.url}
-                    alt={post.title ?? "A Sports Zone"}
+                    alt={post.title ?? "ASPORTS ZONE"}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-105"
                     sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"

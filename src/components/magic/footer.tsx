@@ -60,8 +60,8 @@ export async function Footer() {
         {/* brand + contact */}
         <div className="lg:col-span-2">
           <Link href="/" className="mb-4 flex items-center gap-2.5 font-semibold">
-            <Image src="/logo.png" alt="A Sports Zone" width={48} height={48} className="h-12 w-12 rounded-lg" />
-            <span className="text-lg">A<span className="text-muted"> Sports Zone</span></span>
+            <Image src="/logo.png" alt="ASPORTS ZONE" width={48} height={48} className="h-12 w-12 rounded-lg" />
+            <span className="text-lg font-bold">ASPORTS<span className="font-normal text-muted"> ZONE</span></span>
           </Link>
           <p className="mb-5 max-w-xs text-sm text-muted">{t("tagline")}</p>
           <ul className="space-y-2.5 text-sm text-muted">
@@ -121,7 +121,7 @@ export async function Footer() {
       </div>
 
       <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-4 border-t border-[var(--border)] pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-        <span>© {new Date().getFullYear()} A Sports Zone. {t("rights")}</span>
+        <span>© {new Date().getFullYear()} ASPORTS ZONE. {t("rights")}</span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {["360", "BDM", "DSC", "EM", "GOWIN", "Black Panther"].map((b) => <span key={b}>{b}</span>)}
         </span>

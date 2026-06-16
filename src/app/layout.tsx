@@ -24,16 +24,16 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "A Sports Zone — Built for the Pitch",
-    template: "%s · A Sports Zone",
+    default: "ASPORTS ZONE — Built for the Pitch",
+    template: "%s · ASPORTS ZONE",
   },
   description:
-    "A Sports Zone — Jodhpur's trusted cricket & sports store. Bats, combos, shoes and accessories from 360, BDM, DSC, EM and more. Where the trust builds.",
+    "ASPORTS ZONE — Jodhpur's trusted cricket & sports store. Bats, combos, shoes and accessories from 360, BDM, DSC, EM and more. Where the trust builds.",
   keywords: ["cricket equipment", "cricket bat", "cricket shoes", "sports accessories", "BDM cricket", "DSC cricket", "360 cricket", "Jodhpur cricket store"],
   openGraph: {
     type: "website",
-    siteName: "A Sports Zone",
-    title: "A Sports Zone — Built for the Pitch",
+    siteName: "ASPORTS ZONE",
+    title: "ASPORTS ZONE — Built for the Pitch",
     description: "Jodhpur's trusted cricket & sports store. Where the trust builds.",
     url: appUrl,
   },

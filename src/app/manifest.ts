@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "A Sports Zone",
+    name: "ASPORTS ZONE",
     short_name: "ASportsZone",
     description: "Jodhpur's trusted cricket & sports store — built for the pitch.",
     start_url: "/",

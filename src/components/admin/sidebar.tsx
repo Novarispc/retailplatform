@@ -24,7 +24,7 @@ export function AdminSidebar() {
   return (
     <aside className="glass sticky top-4 h-fit w-full rounded-2xl p-3 lg:w-60">
       <div className="mb-4 flex items-center gap-2 px-2 py-2 font-semibold">
-        <Image src="/logo.png" alt="A Sports Zone" width={40} height={40} className="h-10 w-10 rounded-lg ring-1 ring-white/20" />
+        <Image src="/logo.png" alt="ASPORTS ZONE" width={40} height={40} className="h-10 w-10 rounded-lg ring-1 ring-white/20" />
         <span className="hidden sm:inline">Admin</span>
       </div>
       <nav className="flex gap-1 lg:flex-col">

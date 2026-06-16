@@ -34,9 +34,9 @@ export function Navbar() {
       <header className="sticky top-0 z-40 px-4 pt-4">
         <nav className="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-4 py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <Image src="/logo.png" alt="A Sports Zone" width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg" priority />
-            <span className="hidden sm:block text-base font-bold tracking-tight">A<span className="font-normal text-muted"> Sports Zone</span></span>
-            <span className="sr-only">A Sports Zone home</span>
+            <Image src="/logo.png" alt="ASPORTS ZONE" width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg" priority />
+            <span className="hidden sm:block text-base font-bold tracking-tight">ASPORTS<span className="font-normal text-muted"> ZONE</span></span>
+            <span className="sr-only">ASPORTS ZONE home</span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">

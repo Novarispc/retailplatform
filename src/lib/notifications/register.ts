@@ -43,8 +43,8 @@ export function registerNotificationHandlers() {
     await enqueue("send-notification", {
       channel: "email",
       to: user.email,
-      subject: "Welcome to A Sports Zone",
-      body: `Welcome${user.name ? `, ${user.name}` : ""}! Use code WELCOME10 for 10% off your first order at A Sports Zone — where the trust builds.`,
+      subject: "Welcome to ASPORTS ZONE",
+      body: `Welcome${user.name ? `, ${user.name}` : ""}! Use code WELCOME10 for 10% off your first order at ASPORTS ZONE — where the trust builds.`,
     });
   });
 

@@ -16,7 +16,7 @@ const bodySchema = z.object({
     .max(20),
 });
 
-const SYSTEM = `You are the AI shopping assistant for A Sports Zone — a cricket & sports store based in Jodhpur, Rajasthan (asportszone.com). We stock cricket bats, combos, shoes and sports accessories from brands like 360, BDM, DSC, EM, GOWIN and Black Panther. Tagline: "Where the trust builds."
+const SYSTEM = `You are the AI shopping assistant for ASPORTS ZONE — a cricket & sports store based in Jodhpur, Rajasthan (asportszone.com). We stock cricket bats, combos, shoes and sports accessories from brands like 360, BDM, DSC, EM, GOWIN and Black Panther. Tagline: "Where the trust builds."
 Help customers discover products, compare options, and answer questions.
 Use the search_products tool to ground every product recommendation in the real catalog — never invent products or prices.
 Be concise and friendly. When you recommend items, mention the product name and price. If nothing matches, say so honestly.`;
@@ -25,7 +25,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: "search_products",
     description:
-      "Search the A Sports Zone catalog. Call this whenever the user asks about products, recommendations, comparisons, or availability.",
+      "Search the ASPORTS ZONE catalog. Call this whenever the user asks about products, recommendations, comparisons, or availability.",
     input_schema: {
       type: "object",
       properties: {

@@ -82,7 +82,7 @@ export default function SignInPage() {
   return (
     <div className="mx-auto max-w-md px-6 py-16">
       <h1 className="mb-2 text-center text-3xl font-bold tracking-tight">Welcome back</h1>
-      <p className="mb-8 text-center text-muted">Sign in to your A Sports Zone account</p>
+      <p className="mb-8 text-center text-muted">Sign in to your ASPORTS ZONE account</p>
       <Suspense fallback={<div className="skeleton h-80 rounded-[var(--radius)]" />}>
         <SignInForm />
       </Suspense>

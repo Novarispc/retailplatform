@@ -187,7 +187,7 @@ export default async function HomePage() {
             <p className="mb-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent)]">Visit us</p>
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Jodhpur&apos;s cricket store</h2>
             <p className="mt-3 max-w-md text-sm text-muted">
-              Where the trust builds. A Sports Zone stocks cricket bats, shoes, combos and sports
+              Where the trust builds. ASPORTS ZONE stocks cricket bats, shoes, combos and sports
               accessories from top brands. Visit our store in Sardarpura or order online — we ship
               to 200+ countries.
             </p>
