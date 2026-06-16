@@ -13,6 +13,7 @@ export type HeroSettings = {
   ctaLabel?: string;
   ctaHref?: string;
   badges?: HeroBadge[];
+  trendingSlugs?: string[];
 };
 
 async function getStoreWithSettings() {
@@ -39,6 +40,7 @@ export async function updateHeroSettings(settings: HeroSettings) {
     ...existingHero,
     ...settings,
     badges: settings.badges?.length ? settings.badges : existingHero.badges ?? [],
+    trendingSlugs: settings.trendingSlugs ?? existingHero.trendingSlugs ?? [],
   };
 
   const nextThemeJson = { ...themeJson, hero };

@@ -6,7 +6,7 @@ import { Hero } from "@/components/magic/hero";
 import { TrustSection } from "@/components/magic/trust-section";
 import { ProductGrid } from "@/components/magic/product-grid";
 import { CmsRenderer } from "@/components/magic/cms-renderer";
-import { listFeaturedProducts, listCategories } from "@/server/services/catalog";
+import { listFeaturedProducts, listCategories, listProductsBySlugs } from "@/server/services/catalog";
 import { getCmsBlocksForPage } from "@/server/services/cms";
 import { getHeroSettings } from "@/server/services/store";
 import { toCardData } from "@/types/catalog";
@@ -42,7 +42,12 @@ export default async function HomePage() {
     isEnabled("ai_assistant"),
   ]);
 
-  const heroProducts: HeroProduct[] = featured.map((p) => ({
+  // Hero "Now trending" items: admin-selected slugs (ordered), else featured.
+  const trendingSlugs = heroSettings.trendingSlugs ?? [];
+  const trendingProducts = trendingSlugs.length ? await listProductsBySlugs(trendingSlugs) : [];
+  const heroSource = trendingProducts.length ? trendingProducts : featured;
+
+  const heroProducts: HeroProduct[] = heroSource.map((p) => ({
     slug: p.slug,
     name: p.name,
     blurb: p.category?.name ?? "",

@@ -24,6 +24,32 @@ export async function listFeaturedProducts(take = 6) {
   });
 }
 
+/** Fetch products by slug, returned in the same order as the given slug list. */
+export async function listProductsBySlugs(slugs: string[]) {
+  if (slugs.length === 0) return [];
+  const tenant = await getActiveTenant();
+  const products = await prisma.product.findMany({
+    where: { tenantId: tenant.id, active: true, slug: { in: slugs } },
+    include: {
+      images: { orderBy: { position: "asc" }, take: 1 },
+      category: true,
+      variants: { take: 1, orderBy: { sku: "asc" } },
+    },
+  });
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+  return slugs.map((s) => bySlug.get(s)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+}
+
+/** Lightweight {slug, name, featured} list of all active products for admin pickers. */
+export async function listProductOptions() {
+  const tenant = await getActiveTenant();
+  return prisma.product.findMany({
+    where: { tenantId: tenant.id, active: true },
+    select: { slug: true, name: true, featured: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 export async function searchCatalog(params: Omit<SearchParams, "tenantId">) {
   const tenant = await getActiveTenant();
   return getSearch().searchProducts({ ...params, tenantId: tenant.id });

@@ -6,6 +6,7 @@ import { CouponForm } from "@/components/admin/coupon-form";
 import { GiftCardForm } from "@/components/admin/giftcard-form";
 import { HeroSettingsForm } from "@/app/(admin)/admin/marketing/hero-settings";
 import { getHeroSettings } from "@/server/services/store";
+import { listProductOptions } from "@/server/services/catalog";
 import { Table, THead, TH, TR, TD, StatusBadge } from "@/components/admin/table";
 import { formatMoney } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
@@ -19,11 +20,12 @@ function describe(c: { type: string; value: number }) {
 }
 
 export default async function MarketingPage() {
-  const [coupons, giftCards, aiAssistantFlag, heroSettings] = await Promise.all([
+  const [coupons, giftCards, aiAssistantFlag, heroSettings, productOptions] = await Promise.all([
     listCoupons(),
     listGiftCards(),
     prisma.featureFlag.findUnique({ where: { key: "ai_assistant" } }),
     getHeroSettings(),
+    listProductOptions(),
   ]);
   const assistantEnabled = aiAssistantFlag?.enabled ?? false;
 
@@ -66,7 +68,7 @@ export default async function MarketingPage() {
       </div>
 
       <section id="hero-settings" className="mb-8">
-        <HeroSettingsForm initial={heroSettings} />
+        <HeroSettingsForm initial={heroSettings} products={productOptions} />
       </section>
 
       <CouponForm />

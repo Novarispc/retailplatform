@@ -30,8 +30,15 @@ export async function updateHeroSettingsAction(_prev: unknown, formData: FormDat
     .filter((parts) => parts.length === 2 && parts[0] && parts[1])
     .map(([title, subtitle]) => ({ title, subtitle }));
 
+  // "Now trending" hero items — selected product slugs (checkbox list).
+  const trendingSlugs = formData
+    .getAll("trending")
+    .map((v) => String(v).trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
   try {
-    await updateHeroSettings({ titleA, titleB, subtitle, ctaLabel, ctaHref, badges });
+    await updateHeroSettings({ titleA, titleB, subtitle, ctaLabel, ctaHref, badges, trendingSlugs });
     revalidatePath("/");
     revalidatePath("/admin");
     return { ok: true };
