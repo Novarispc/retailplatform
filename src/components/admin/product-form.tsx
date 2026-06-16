@@ -97,7 +97,7 @@ export function ProductForm({
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="glass space-y-5 rounded-[var(--radius)] p-6">
+    <form action={formAction} encType="multipart/form-data" className="glass space-y-5 rounded-[var(--radius)] p-6">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <Label htmlFor="name">Name</Label>
@@ -149,6 +149,14 @@ export function ProductForm({
       <div>
         <Label htmlFor="imageUrl">Image URL</Label>
         <Input id="imageUrl" name="imageUrl" type="url" defaultValue={initial?.imageUrl} placeholder="https://…" />
+      </div>
+
+      <div>
+        <div className="mb-1 flex items-center justify-between gap-4">
+          <Label htmlFor="imageFile">Image file</Label>
+          <p className="text-xs text-muted">Upload takes precedence over URL</p>
+        </div>
+        <Input id="imageFile" name="imageFile" type="file" accept="image/*" />
       </div>
 
       <SpecEditor initial={initial?.specs} />

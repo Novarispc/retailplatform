@@ -6,6 +6,7 @@ import type { OrderStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { assert } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
+import { getStorage } from "@/lib/storage";
 import {
   productUpsertSchema,
   inventoryAdjustSchema,
@@ -42,11 +43,28 @@ function boolFromForm(fd: FormData, key: string) {
   return fd.get(key) === "on" || fd.get(key) === "true";
 }
 
+async function uploadProductImage(file: File) {
+  const bytes = await file.arrayBuffer();
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const safeExt = ext.replace(/[^a-z0-9]/g, "") || "jpg";
+  const key = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
+  return getStorage().putObject(key, Buffer.from(bytes), file.type || `image/${safeExt}`);
+}
+
 export async function createProductAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireAdmin("product.write");
+  const imageFile = formData.get("imageFile") as File | null;
+  let imageUrl = String(formData.get("imageUrl") ?? "").trim();
+  if (imageFile && imageFile.size > 0) {
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "Only image files are allowed." };
+    }
+    imageUrl = await uploadProductImage(imageFile);
+  }
+
   const parsed = productUpsertSchema.safeParse({
     name: formData.get("name"),
     slug: formData.get("slug"),
@@ -55,7 +73,7 @@ export async function createProductAction(
     categoryId: formData.get("categoryId") ?? "",
     featured: boolFromForm(formData, "featured"),
     active: boolFromForm(formData, "active"),
-    imageUrl: formData.get("imageUrl") ?? "",
+    imageUrl,
     stock: formData.get("stock") ?? 0,
     specsJson: String(formData.get("specsJson") ?? "[]"),
   });
@@ -79,6 +97,16 @@ export async function updateProductAction(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireAdmin("product.write");
+
+  const imageFile = formData.get("imageFile") as File | null;
+  let imageUrl = String(formData.get("imageUrl") ?? "").trim();
+  if (imageFile && imageFile.size > 0) {
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "Only image files are allowed." };
+    }
+    imageUrl = await uploadProductImage(imageFile);
+  }
+
   const parsed = productUpsertSchema.safeParse({
     name: formData.get("name"),
     slug: formData.get("slug"),
@@ -87,7 +115,7 @@ export async function updateProductAction(
     categoryId: formData.get("categoryId") ?? "",
     featured: boolFromForm(formData, "featured"),
     active: boolFromForm(formData, "active"),
-    imageUrl: formData.get("imageUrl") ?? "",
+    imageUrl,
     stock: formData.get("stock") ?? 0,
     specsJson: String(formData.get("specsJson") ?? "[]"),
   });
