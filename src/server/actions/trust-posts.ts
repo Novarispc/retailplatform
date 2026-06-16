@@ -21,7 +21,7 @@ async function saveUploadedFile(file: File): Promise<string> {
 
 export async function createTrustPostAction(formData: FormData) {
   const session = await auth();
-  assert(session?.user?.role, "admin.access");
+  assert(session?.user?.role ?? "CUSTOMER", "admin.access");
 
   const tenant = await getActiveTenant();
   const type = (formData.get("type") as TrustPostType) || "PHOTO";
@@ -62,7 +62,7 @@ export async function createTrustPostAction(formData: FormData) {
 
 export async function toggleTrustPostAction(formData: FormData) {
   const session = await auth();
-  assert(session?.user?.role, "admin.access");
+  assert(session?.user?.role ?? "CUSTOMER", "admin.access");
 
   const id = formData.get("id") as string;
   const current = formData.get("active") === "true";
@@ -75,7 +75,7 @@ export async function toggleTrustPostAction(formData: FormData) {
 
 export async function deleteTrustPostAction(formData: FormData) {
   const session = await auth();
-  assert(session?.user?.role, "admin.access");
+  assert(session?.user?.role ?? "CUSTOMER", "admin.access");
 
   const id = formData.get("id") as string;
   await prisma.trustPost.delete({ where: { id } });
