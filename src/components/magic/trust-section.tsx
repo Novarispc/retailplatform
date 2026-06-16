@@ -9,6 +9,15 @@ function getYouTubeEmbedUrl(url: string): string | null {
   return m ? `https://www.youtube.com/embed/${m[1]}?rel=0&modestbranding=1` : null;
 }
 
+function getInstagramEmbedUrl(url: string): string | null {
+  const m = url.match(/(?:instagram\.com\/(?:p|reel|tv)\/)([A-Za-z0-9_-]+)/);
+  return m ? `https://www.instagram.com/p/${m[1]}/embed` : null;
+}
+
+function isDirectVideoFileUrl(url: string): boolean {
+  return /\.(mp4|webm|mov|ogg)(?:\?|$)/i.test(url);
+}
+
 async function getActiveTrustPosts() {
   const tenant = await getActiveTenant();
   return prisma.trustPost.findMany({
@@ -59,7 +68,18 @@ export async function TrustSection() {
                     title={post.title ?? "A Sports Zone video"}
                   />
                 </div>
-              ) : post.type === "VIDEO" || post.type === "SHORT" ? (
+              ) : getInstagramEmbedUrl(post.url) ? (
+                <div className={isShort ? "aspect-[9/16]" : "aspect-video"}>
+                  <iframe
+                    src={getInstagramEmbedUrl(post.url)!}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full"
+                    loading="lazy"
+                    title={post.title ?? "A Sports Zone Instagram video"}
+                  />
+                </div>
+              ) : isDirectVideoFileUrl(post.url) ? (
                 <div className={isShort ? "aspect-[9/16]" : "aspect-video"}>
                   {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                   <video
@@ -68,6 +88,18 @@ export async function TrustSection() {
                     className="h-full w-full object-cover"
                     preload="metadata"
                   />
+                </div>
+              ) : post.type === "VIDEO" || post.type === "SHORT" ? (
+                <div className="relative aspect-square bg-[var(--surface-2)] p-6 text-center">
+                  <p className="text-sm font-medium">Unable to preview this video URL.</p>
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex rounded-full border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--accent)]"
+                  >
+                    Open source link
+                  </a>
                 </div>
               ) : (
                 <div className="relative aspect-square">

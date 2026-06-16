@@ -781,11 +781,17 @@ async function main() {
 
   // ── Users ──────────────────────────────────────────────────────
   const adminHash = await bcrypt.hash("Admin@12345", 10);
+  const adminHashAlt = await bcrypt.hash("Asportsadmin@321", 10);
   const custHash = await bcrypt.hash("Customer@12345", 10);
   await prisma.user.upsert({
     where: { email: "admin@nova.test" },
     update: {},
     create: { email: "admin@nova.test", name: "Store Admin", role: Role.ADMIN, passwordHash: adminHash, tenantId: tenant.id },
+  });
+  await prisma.user.upsert({
+    where: { email: "admin@asports.com" },
+    update: {},
+    create: { email: "admin@asports.com", name: "A Sports Zone Admin", role: Role.ADMIN, passwordHash: adminHashAlt, tenantId: tenant.id },
   });
   await prisma.user.upsert({
     where: { email: "customer@nova.test" },
@@ -971,6 +977,7 @@ async function main() {
     `✔ Seeded A Sports Zone store: ${PRODUCTS.length} products across ${CATEGORIES.length} categories.`,
   );
   console.log(`  Admin: admin@nova.test / Admin@12345`);
+  console.log(`  Admin: admin@asports.com / Asportsadmin@321`);
   console.log(`  Customer: customer@nova.test / Customer@12345`);
   console.log(`  Coupons: CRICKET10 (10% off) · FREESHIP · KIT500 (₹500 off ₹3k+)`);
   console.log(`  Gift card: GC-CRICKET-1000 (₹1,000)`);

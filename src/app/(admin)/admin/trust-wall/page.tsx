@@ -56,11 +56,11 @@ export default async function TrustWallPage() {
 
           <div>
             <label className="mb-1.5 block text-sm text-muted">
-              URL <span className="text-xs text-[var(--muted)]">(YouTube link or image URL)</span>
+              URL <span className="text-xs text-[var(--muted)]">(YouTube, Instagram, direct video, or image URL)</span>
             </label>
             <input
               name="url"
-              placeholder="https://youtube.com/watch?v=… or https://…/photo.jpg"
+              placeholder="https://youtube.com/watch?v=… or https://instagram.com/reel/… or https://…/photo.jpg"
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
