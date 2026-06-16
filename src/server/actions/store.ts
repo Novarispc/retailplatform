@@ -14,7 +14,7 @@ async function requireAdmin() {
   return session.user;
 }
 
-export async function updateHeroSettingsAction(formData: FormData) {
+export async function updateHeroSettingsAction(_prev: unknown, formData: FormData) {
   await requireAdmin();
 
   const titleA = String(formData.get("titleA") ?? "").trim();

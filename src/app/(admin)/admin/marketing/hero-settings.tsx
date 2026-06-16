@@ -7,7 +7,7 @@ import { updateHeroSettingsAction } from "@/server/actions/store";
 import type { HeroSettings } from "@/server/services/store";
 
 export function HeroSettingsForm({ initial }: { initial: HeroSettings }) {
-  const [state, action, pending] = useActionState(updateHeroSettingsAction, {});
+  const [state, action, pending] = useActionState(updateHeroSettingsAction, { ok: false } as { ok?: boolean; error?: string });
   const [badges, setBadges] = useState(() => {
     const heroBadges = Array.isArray(initial.badges) ? initial.badges : [];
     return heroBadges
