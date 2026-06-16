@@ -8,6 +8,7 @@ import { ProductGrid } from "@/components/magic/product-grid";
 import { CmsRenderer } from "@/components/magic/cms-renderer";
 import { listFeaturedProducts, listCategories } from "@/server/services/catalog";
 import { getCmsBlocksForPage } from "@/server/services/cms";
+import { getHeroSettings } from "@/server/services/store";
 import { toCardData } from "@/types/catalog";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
 import { isEnabled } from "@/lib/flags";
@@ -32,10 +33,11 @@ const COLLECTIONS = [
 ];
 
 export default async function HomePage() {
-  const [featured, categories, cmsBlocks, t, assistantEnabled] = await Promise.all([
+  const [featured, categories, cmsBlocks, heroSettings, t, assistantEnabled] = await Promise.all([
     listFeaturedProducts(8),
     listCategories(),
     getCmsBlocksForPage("homepage"),
+    getHeroSettings(),
     getTranslations("home"),
     isEnabled("ai_assistant"),
   ]);
@@ -46,11 +48,15 @@ export default async function HomePage() {
     blurb: p.category?.name ?? "",
     price: formatMoney(p.variants?.[0]?.priceMinor ?? 0, p.currency as CurrencyCode),
     imageUrl: p.images?.[0]?.url ?? null,
+    // include variant id and priceMinor so hero can quick-add to cart
+    defaultVariantId: p.variants?.[0]?.id ?? null,
+    priceMinor: p.variants?.[0]?.priceMinor ?? 0,
+    currency: p.currency as CurrencyCode,
   }));
 
   return (
     <div className="space-y-24 pb-8">
-      <Hero products={heroProducts} assistantEnabled={assistantEnabled} />
+      <Hero products={heroProducts} assistantEnabled={assistantEnabled} heroSettings={heroSettings} />
 
       {/* Feature band */}
       <section className="mx-auto max-w-6xl px-6">

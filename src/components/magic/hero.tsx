@@ -7,6 +7,9 @@ import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Sparkles, ArrowRight, Bot, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/stores/cart";
+import { useUiStore } from "@/stores/ui";
+import Toasts from "@/components/ui/toast";
 
 export type HeroProduct = {
   slug: string;
@@ -14,6 +17,23 @@ export type HeroProduct = {
   blurb: string;
   price: string;
   imageUrl: string | null;
+  defaultVariantId?: string | null;
+  priceMinor?: number;
+  currency?: string;
+};
+
+export type HeroBadge = {
+  title: string;
+  subtitle: string;
+};
+
+export type HeroSettings = {
+  titleA?: string;
+  titleB?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  badges?: HeroBadge[];
 };
 
 const FLOATING = [
@@ -31,9 +51,26 @@ const FEATURE_BADGES = [
   { title: "Curated picks", subtitle: "Top-rated cricket essentials" },
 ];
 
-export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; assistantEnabled: boolean }) {
+export function Hero({
+  products,
+  assistantEnabled,
+  heroSettings,
+}: {
+  products: HeroProduct[];
+  assistantEnabled: boolean;
+  heroSettings?: HeroSettings;
+}) {
   const t = useTranslations("hero");
   const [activeIndex, setActiveIndex] = useState(0);
+  const add = useCart((s) => s.add);
+  const addToast = useUiStore((s) => s.addToast);
+  const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
+  const heroTitleA = heroSettings?.titleA?.trim() || t("titleA");
+  const heroTitleB = heroSettings?.titleB?.trim() || t("titleB");
+  const heroSubtitle = heroSettings?.subtitle?.trim() || t("subtitle");
+  const heroCtaLabel = heroSettings?.ctaLabel?.trim() || t("explore");
+  const heroCtaHref = heroSettings?.ctaHref?.trim() || "/catalog";
+  const heroBadges = heroSettings?.badges?.length ? heroSettings.badges : FEATURE_BADGES;
 
   useEffect(() => {
     if (products.length <= 1) return;
@@ -42,6 +79,23 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
     }, 7000);
     return () => window.clearInterval(timer);
   }, [products.length]);
+
+  const handleAdd = (product: HeroProduct, index: number) => {
+    // set visible product and add the default variant to cart if available
+    setActiveIndex(index);
+    if (!product.defaultVariantId) return;
+    add({
+      variantId: product.defaultVariantId!,
+      productSlug: product.slug,
+      name: product.name,
+      imageUrl: product.imageUrl,
+      unitPriceMinor: product.priceMinor ?? 0,
+    });
+    // show transient feedback and toast
+    setAddedIds((s) => ({ ...s, [product.defaultVariantId ?? product.slug]: true }));
+    addToast(`${product.name} added to cart`, "success", 1800);
+    window.setTimeout(() => setAddedIds((s) => ({ ...s, [product.defaultVariantId ?? product.slug]: false })), 1800);
+  };
 
   const active = products[activeIndex] ?? products[0] ?? {
     slug: "",
@@ -52,13 +106,14 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
   };
 
   return (
-    <section className="relative min-h-[85vh] overflow-hidden px-6 pb-20 pt-24 sm:pb-32 sm:pt-32">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(67,56,202,0.18),transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,186,0,0.13),transparent_28%)]" />
+    <section className="relative min-h-[48vh] overflow-hidden px-6 pb-10 pt-18 sm:pb-12 sm:pt-16">
+      <Toasts />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(67,56,202,0.18),transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,186,0,0.13),transparent_28%)]" />
       {FLOATING.map((p, i) => (
         <motion.span
           key={i}
           aria-hidden
-          className="pointer-events-none absolute rounded-full"
+          className="pointer-events-none absolute rounded-full -z-10"
           style={{
             left: p.left,
             top: p.top,
@@ -71,23 +126,23 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
         />
       ))}
 
-      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
-        <div className="space-y-8 text-white">
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.85fr] items-center">
+        <div className="relative z-20 space-y-8 text-white">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.28em] text-white/80">
             <Sparkles className="h-4 w-4 text-[var(--accent)]" />
             Featured showcase
           </div>
 
-          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
-            {t("titleA")} <span className="gradient-text">{t("titleB")}</span>
+          <h1 className="text-3xl sm:text-4xl md:text-4xl font-bold leading-tight tracking-tight">
+            {heroTitleA} <span className="gradient-text">{heroTitleB}</span>
           </h1>
 
-          <p className="max-w-2xl text-lg text-muted">{t("subtitle")}</p>
+          <p className="max-w-2xl text-sm md:text-base text-muted">{heroSubtitle}</p>
 
           <div className="flex flex-wrap gap-4">
-            <Link href="/catalog">
+            <Link href={heroCtaHref}>
               <Button size="lg">
-                {t("explore")} <ArrowRight className="h-4 w-4" />
+                {heroCtaLabel} <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             {assistantEnabled && (
@@ -105,7 +160,7 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            {FEATURE_BADGES.map((badge) => (
+            {heroBadges.map((badge) => (
               <div key={badge.title} className="rounded-3xl border border-white/10 bg-white/5 p-4">
                 <p className="text-sm font-semibold">{badge.title}</p>
                 <p className="mt-1 text-xs text-muted">{badge.subtitle}</p>
@@ -119,7 +174,7 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#071018]/95 p-6 shadow-[0_38px_90px_-26px_rgba(0,0,0,0.7)]"
+            className="relative z-20 overflow-hidden rounded-[2rem] border border-white/10 bg-[#071018]/95 p-6 shadow-[0_38px_90px_-26px_rgba(0,0,0,0.7)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -132,14 +187,14 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
               </span>
             </div>
 
-            <div className="mt-6 aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[var(--accent)]/20 via-transparent to-transparent">
+            <div className="mt-6 aspect-[16/10] relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[var(--accent)]/14 via-transparent to-transparent p-3">
               {active.imageUrl ? (
                 <Image
                   src={active.imageUrl}
                   alt={active.name}
                   fill
                   sizes="(max-width:1024px) 100vw, 520px"
-                  className="object-cover transition-transform duration-700 ease-[var(--ease-out)] hover:scale-105"
+                  className="object-contain transition-transform duration-400 ease-[var(--ease-out)]"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-muted">No image available</div>
@@ -161,16 +216,25 @@ export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; 
                 <button
                   key={product.slug || index}
                   type="button"
-                  onClick={() => setActiveIndex(index)}
-                  className={`group overflow-hidden rounded-3xl border p-3 text-left transition ${
+                  onClick={() => handleAdd(product, index)}
+                  aria-label={product.name}
+                  className={`group relative flex-shrink-0 h-16 w-16 overflow-hidden rounded-lg border p-0 transition ${
                     index === activeIndex
-                      ? "border-[var(--accent)] bg-white/10"
+                      ? "ring-2 ring-[var(--accent)]"
                       : "border-white/10 bg-white/5 hover:border-white/20"
                   }`}
                 >
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-muted">{product.blurb || "Featured"}</p>
-                  <p className="mt-3 font-semibold text-sm leading-snug">{product.name}</p>
-                  <p className="mt-2 text-xs text-muted">{product.price}</p>
+                  <div className="relative h-full w-full bg-[var(--surface-2)]">
+                    {product.imageUrl ? (
+                      <Image src={product.imageUrl} alt={product.name} fill sizes="64px" className="object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-xs text-muted">No image</div>
+                    )}
+                  </div>
+
+                  {product.defaultVariantId && addedIds[product.defaultVariantId] && (
+                    <span className="absolute -right-2 -top-2 rounded-full bg-[var(--success)]/95 px-2 py-1 text-xs font-semibold text-white">Added</span>
+                  )}
                 </button>
               ))}
             </div>

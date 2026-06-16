@@ -4,6 +4,8 @@ import { listCoupons, listGiftCards } from "@/server/services/admin";
 import { toggleCouponAction, toggleFeatureFlagAction } from "@/server/actions/admin";
 import { CouponForm } from "@/components/admin/coupon-form";
 import { GiftCardForm } from "@/components/admin/giftcard-form";
+import { HeroSettingsForm } from "@/app/(admin)/admin/marketing/hero-settings";
+import { getHeroSettings } from "@/server/services/store";
 import { Table, THead, TH, TR, TD, StatusBadge } from "@/components/admin/table";
 import { formatMoney } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
@@ -17,10 +19,11 @@ function describe(c: { type: string; value: number }) {
 }
 
 export default async function MarketingPage() {
-  const [coupons, giftCards, aiAssistantFlag] = await Promise.all([
+  const [coupons, giftCards, aiAssistantFlag, heroSettings] = await Promise.all([
     listCoupons(),
     listGiftCards(),
     prisma.featureFlag.findUnique({ where: { key: "ai_assistant" } }),
+    getHeroSettings(),
   ]);
   const assistantEnabled = aiAssistantFlag?.enabled ?? false;
 
@@ -40,6 +43,7 @@ export default async function MarketingPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <a href="#hero-settings" className="rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm font-medium text-foreground hover:opacity-90">Edit homepage hero</a>
             <span
               className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                 assistantEnabled ? "bg-[var(--success)]/15 text-[var(--success)]" : "bg-[var(--danger)]/15 text-[var(--danger)]"
@@ -60,6 +64,8 @@ export default async function MarketingPage() {
           </div>
         </div>
       </div>
+
+      <HeroSettingsForm initial={heroSettings} />
 
       <CouponForm />
 
