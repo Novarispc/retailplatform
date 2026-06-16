@@ -10,6 +10,7 @@ import { listFeaturedProducts, listCategories } from "@/server/services/catalog"
 import { getCmsBlocksForPage } from "@/server/services/cms";
 import { toCardData } from "@/types/catalog";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
+import { isEnabled } from "@/lib/flags";
 import type { HeroProduct } from "@/components/magic/hero";
 
 export const dynamic = "force-dynamic";
@@ -31,27 +32,25 @@ const COLLECTIONS = [
 ];
 
 export default async function HomePage() {
-  const [featured, categories, cmsBlocks, t] = await Promise.all([
+  const [featured, categories, cmsBlocks, t, assistantEnabled] = await Promise.all([
     listFeaturedProducts(8),
     listCategories(),
     getCmsBlocksForPage("homepage"),
     getTranslations("home"),
+    isEnabled("ai_assistant"),
   ]);
 
-  const top = featured[0] ? toCardData(featured[0]) : null;
-  const heroProduct: HeroProduct | undefined = top
-    ? {
-        slug: top.slug,
-        name: top.name,
-        blurb: top.categoryName ?? "",
-        price: formatMoney(top.priceMinor, top.currency as CurrencyCode),
-        imageUrl: top.imageUrl,
-      }
-    : undefined;
+  const heroProducts: HeroProduct[] = featured.map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    blurb: p.category?.name ?? "",
+    price: formatMoney(p.variants?.[0]?.priceMinor ?? 0, p.currency as CurrencyCode),
+    imageUrl: p.images?.[0]?.url ?? null,
+  }));
 
   return (
     <div className="space-y-24 pb-8">
-      <Hero product={heroProduct} />
+      <Hero products={heroProducts} assistantEnabled={assistantEnabled} />
 
       {/* Feature band */}
       <section className="mx-auto max-w-6xl px-6">

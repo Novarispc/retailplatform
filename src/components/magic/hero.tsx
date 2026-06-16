@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
 import { Sparkles, ArrowRight, Bot, ShieldCheck } from "lucide-react";
@@ -16,19 +17,43 @@ export type HeroProduct = {
 };
 
 const FLOATING = [
-  { left: "8%", top: "22%", size: 7, delay: 0 },
-  { left: "82%", top: "30%", size: 5, delay: 0.6 },
-  { left: "70%", top: "12%", size: 4, delay: 1.1 },
-  { left: "20%", top: "70%", size: 6, delay: 0.3 },
-  { left: "90%", top: "62%", size: 4, delay: 0.9 },
-  { left: "40%", top: "18%", size: 3, delay: 1.4 },
+  { left: "8%", top: "18%", size: 7, delay: 0 },
+  { left: "88%", top: "24%", size: 5, delay: 0.6 },
+  { left: "72%", top: "10%", size: 4, delay: 1.1 },
+  { left: "18%", top: "68%", size: 6, delay: 0.3 },
+  { left: "92%", top: "62%", size: 4, delay: 0.9 },
+  { left: "44%", top: "16%", size: 3, delay: 1.4 },
 ];
 
-export function Hero({ product }: { product?: HeroProduct }) {
+const FEATURE_BADGES = [
+  { title: "Ready to ship", subtitle: "Fast delivery across India" },
+  { title: "100% genuine", subtitle: "Official bat and gear brands" },
+  { title: "Curated picks", subtitle: "Top-rated cricket essentials" },
+];
+
+export function Hero({ products, assistantEnabled }: { products: HeroProduct[]; assistantEnabled: boolean }) {
   const t = useTranslations("hero");
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (products.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % products.length);
+    }, 7000);
+    return () => window.clearInterval(timer);
+  }, [products.length]);
+
+  const active = products[activeIndex] ?? products[0] ?? {
+    slug: "",
+    name: "SS Gladiator Batting Gloves",
+    blurb: "Premium leather · Velcro closure · MRH",
+    price: "₹3,500",
+    imageUrl: null,
+  };
+
   return (
-    <section className="relative overflow-hidden px-6 pb-24 pt-16 sm:pt-24">
-      {/* floating glow particles */}
+    <section className="relative min-h-[85vh] overflow-hidden px-6 pb-20 pt-24 sm:pb-32 sm:pt-32">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(67,56,202,0.18),transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,186,0,0.13),transparent_28%)]" />
       {FLOATING.map((p, i) => (
         <motion.span
           key={i}
@@ -39,138 +64,118 @@ export function Hero({ product }: { product?: HeroProduct }) {
             top: p.top,
             width: p.size,
             height: p.size,
-            background:
-              "radial-gradient(circle, var(--accent), transparent 70%)",
+            background: "radial-gradient(circle, var(--accent), transparent 70%)",
           }}
           animate={{ y: [0, -18, 0], opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 5 + i, repeat: Infinity, delay: p.delay }}
         />
       ))}
 
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-1.5 text-xs text-muted"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" />
-            {t("badge")}
-          </motion.div>
+      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
+        <div className="space-y-8 text-white">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.28em] text-white/80">
+            <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+            Featured showcase
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.05 }}
-            className="text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl"
-          >
-            {t("titleA")}{" "}
-            <span className="gradient-text">{t("titleB")}</span>.
-          </motion.h1>
+          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
+            {t("titleA")} <span className="gradient-text">{t("titleB")}</span>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="mt-6 max-w-md text-lg text-muted"
-          >
-            {t("subtitle")}
-          </motion.p>
+          <p className="max-w-2xl text-lg text-muted">{t("subtitle")}</p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25 }}
-            className="mt-9 flex flex-wrap gap-4"
-          >
+          <div className="flex flex-wrap gap-4">
             <Link href="/catalog">
               <Button size="lg">
                 {t("explore")} <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/catalog?assistant=1">
+            {assistantEnabled && (
+              <Link href="/catalog?assistant=1">
+                <Button size="lg" variant="secondary">
+                  <Bot className="h-4 w-4" /> {t("assistant")}
+                </Button>
+              </Link>
+            )}
+            <Link href="/display">
               <Button size="lg" variant="secondary">
-                <Bot className="h-4 w-4" /> {t("assistant")}
+                View fullscreen
               </Button>
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.dl
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-12 grid max-w-sm grid-cols-3 gap-6"
-          >
-            {[
-              ["40+", t("statProducts")],
-              ["4.9★", t("statRating")],
-              ["8+", t("statSupport")],
-            ].map(([v, l]) => (
-              <div key={l}>
-                <dt className="text-2xl font-semibold gradient-text">{v}</dt>
-                <dd className="text-xs text-muted">{l}</dd>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {FEATURE_BADGES.map((badge) => (
+              <div key={badge.title} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <p className="text-sm font-semibold">{badge.title}</p>
+                <p className="mt-1 text-xs text-muted">{badge.subtitle}</p>
               </div>
             ))}
-          </motion.dl>
+          </div>
         </div>
 
-        {/* Floating glass showcase card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92, rotateY: 12 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          transition={{ duration: 0.9, delay: 0.2 }}
-          className="relative mx-auto w-full max-w-sm [perspective:1200px]"
-        >
-          {/* soft halo behind card */}
-          <div
-            aria-hidden
-            className="absolute inset-6 -z-10 rounded-full bg-[var(--accent)]/20 blur-3xl"
-          />
-          <Link
-            href={product ? `/product/${product.slug}` : "/catalog"}
-            className="group animate-float gradient-border glow-accent block rounded-[var(--radius)] p-6"
+        <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#071018]/95 p-6 shadow-[0_38px_90px_-26px_rgba(0,0,0,0.7)]"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs uppercase tracking-widest text-muted">Featured</span>
-              <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs text-[var(--accent)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-[var(--accent)]">Now trending</p>
+                <h2 className="mt-4 text-3xl font-semibold">{active.name}</h2>
+                <p className="mt-3 text-sm text-muted">{active.blurb}</p>
+              </div>
+              <span className="whitespace-nowrap rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
                 Best seller
               </span>
             </div>
-            <div className="shine relative mb-5 aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--accent)]/20 via-[var(--accent-2)]/12 to-transparent">
-              {product?.imageUrl && (
+
+            <div className="mt-6 aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[var(--accent)]/20 via-transparent to-transparent">
+              {active.imageUrl ? (
                 <Image
-                  src={product.imageUrl}
-                  alt={product.name}
+                  src={active.imageUrl}
+                  alt={active.name}
                   fill
-                  sizes="(max-width:1024px) 90vw, 380px"
-                  priority
-                  className="object-cover transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-105"
+                  sizes="(max-width:1024px) 100vw, 520px"
+                  className="object-cover transition-transform duration-700 ease-[var(--ease-out)] hover:scale-105"
                 />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted">No image available</div>
               )}
             </div>
-            <h3 className="line-clamp-1 text-lg font-semibold">
-              {product?.name ?? "SS Gladiator Batting Gloves"}
-            </h3>
-            <p className="mt-1 line-clamp-1 text-sm text-muted">
-              {product?.blurb ?? "Premium leather · Velcro closure · MRH"}
-            </p>
-            <div className="mt-4 flex items-center justify-between">
-              <span className="tnum text-xl font-bold gradient-text">{product?.price ?? "₹3,500"}</span>
-              <Button size="sm">View</Button>
+
+            <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-3xl font-bold gradient-text">{active.price}</span>
+              <Link
+                href={active.slug ? `/product/${active.slug}` : "/catalog"}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+              >
+                View product <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-          </Link>
-          {/* trust chip floating off the card */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="glass absolute -bottom-4 -left-4 flex items-center gap-2 rounded-full px-3 py-1.5 text-xs"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-[var(--success)]" />
-            100% genuine
+
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {products.slice(0, 4).map((product, index) => (
+                <button
+                  key={product.slug || index}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={`group overflow-hidden rounded-3xl border p-3 text-left transition ${
+                    index === activeIndex
+                      ? "border-[var(--accent)] bg-white/10"
+                      : "border-white/10 bg-white/5 hover:border-white/20"
+                  }`}
+                >
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-muted">{product.blurb || "Featured"}</p>
+                  <p className="mt-3 font-semibold text-sm leading-snug">{product.name}</p>
+                  <p className="mt-2 text-xs text-muted">{product.price}</p>
+                </button>
+              ))}
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

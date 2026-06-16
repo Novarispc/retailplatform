@@ -195,6 +195,25 @@ export async function toggleCouponAction(formData: FormData) {
   revalidatePath("/admin/marketing");
 }
 
+export async function toggleFeatureFlagAction(formData: FormData) {
+  const user = await requireAdmin("admin.access");
+  const key = String(formData.get("key"));
+  const enabled = String(formData.get("enabled")) === "true";
+  if (key !== "ai_assistant") return;
+
+  try {
+    await prisma.featureFlag.upsert({
+      where: { key },
+      update: { enabled },
+      create: { key, enabled },
+    });
+  } catch (err) {
+    logger.error({ err, key, enabled }, "toggleFeatureFlag failed");
+  }
+
+  revalidatePath("/admin/marketing");
+}
+
 export async function createGiftCardAction(
   _prev: ActionState,
   formData: FormData,
