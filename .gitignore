@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# DB backups
+backups/
+
+# Uploaded media (ephemeral on Vercel — use S3 in prod)
+/public/uploads/

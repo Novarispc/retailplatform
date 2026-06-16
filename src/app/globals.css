@@ -1,26 +1,249 @@
 @import "tailwindcss";
 
+/*
+  A Sports Zone — premium dark design system.
+  Deep space background, red→orange accent, liquid-glass surfaces.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #06070d;
+  --surface: #0c0e18;
+  --surface-2: #11141f;
+  --surface-3: #161a28;
+  --foreground: #eef0f6;
+  --muted: #9aa3b8;
+  --border: #1e2233;
+  --border-strong: #2a3047;
+  --accent: #e8001d;
+  --accent-2: #ff4444;
+  --accent-3: #ff8c00;
+  --energy: #e8001d;   /* brand red */
+  --success: #34d399;
+  --danger: #fb7185;
+  --ring: #e8001d;
+
+  /* Elevation scale — consistent depth across cards, sheets, modals */
+  --elev-1: 0 1px 2px -1px rgba(0, 0, 0, 0.4), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  --elev-2: 0 4px 12px -4px rgba(0, 0, 0, 0.5), 0 12px 32px -12px rgba(0, 0, 0, 0.55);
+  --elev-3: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 30px 70px -24px rgba(0, 0, 0, 0.65);
+
+  /* Motion tokens — one rhythm everywhere */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur: 240ms;
+  --dur-slow: 400ms;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-energy: var(--energy);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --radius: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Cricket-bat cursor on fine-pointer devices (hotspot near blade tip). */
+@media (pointer: fine) {
+  body {
+    cursor: url("/cursor-bat.svg") 6 6, auto;
+  }
+  a,
+  button,
+  [role="button"],
+  label,
+  summary,
+  select {
+    cursor: url("/cursor-bat.svg") 6 6, pointer;
+  }
+  input,
+  textarea {
+    cursor: text;
+  }
+}
+
+/* Ambient aurora glow behind content — drifts slowly for living depth */
+.aurora-bg {
+  position: relative;
+}
+.aurora-bg::before {
+  content: "";
+  position: fixed;
+  inset: -25% -15% auto -15%;
+  height: 80vh;
+  background:
+    radial-gradient(40% 50% at 18% 18%, rgba(76, 201, 255, 0.22), transparent 70%),
+    radial-gradient(45% 55% at 82% 8%, rgba(157, 123, 255, 0.20), transparent 70%),
+    radial-gradient(38% 48% at 58% 42%, rgba(255, 122, 213, 0.12), transparent 70%),
+    radial-gradient(30% 40% at 95% 55%, rgba(255, 90, 77, 0.08), transparent 70%);
+  filter: blur(24px);
+  z-index: -1;
+  pointer-events: none;
+  animation: aurora-drift 24s var(--ease-in-out) infinite;
+}
+/* faint dotted grain to kill flat banding */
+.aurora-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 3px 3px;
+  z-index: -1;
+  pointer-events: none;
+}
+@keyframes aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-3%, 2%, 0) scale(1.06); }
+}
+
+/* Liquid-glass surface — translucent panel with crisp top highlight.
+   Lives in @layer components so position utilities (fixed/sticky/absolute)
+   applied alongside it still win — unlayered rules would otherwise override
+   Tailwind's utilities layer and pin every .glass element to position:relative. */
+@layer components {
+  .glass {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 40%),
+      color-mix(in oklab, var(--surface) 72%, transparent);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
+    box-shadow: var(--elev-1), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Premium card lift — use on hoverable surfaces */
+.card-lift {
+  transition: transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+  will-change: transform;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elev-3);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+}
+
+/* Elevation utilities */
+.elev-1 { box-shadow: var(--elev-1); }
+.elev-2 { box-shadow: var(--elev-2); }
+.elev-3 { box-shadow: var(--elev-3); }
+
+/* Light sweep — runs across element on hover (parent needs .group + overflow-hidden) */
+.shine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.12) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.7s var(--ease-out);
+  pointer-events: none;
+}
+.group:hover .shine::before { transform: translateX(120%); }
+
+/* Tabular figures for prices/data — no width jitter */
+.tnum { font-variant-numeric: tabular-nums; }
+
+.gradient-text {
+  background: linear-gradient(100deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-border {
+  position: relative;
+  background: var(--surface);
+}
+.gradient-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2), transparent);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glow-accent {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 8px 40px -12px color-mix(in oklab, var(--accent) 50%, transparent);
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.animate-float { animation: float-slow 6s ease-in-out infinite; }
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Respect reduced-motion — kill drift/float/shimmer, keep instant states */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora-bg::before { animation: none; }
 }

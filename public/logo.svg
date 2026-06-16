@@ -1,0 +1,83 @@
+<svg viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Sports Zone — Built for the Pitch">
+  <defs>
+    <linearGradient id="hexGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4d4d4"/>
+      <stop offset="50%" stop-color="#888"/>
+      <stop offset="100%" stop-color="#555"/>
+    </linearGradient>
+    <linearGradient id="hexFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.5)"/>
+    </filter>
+  </defs>
+
+  <!-- Hexagon shield -->
+  <polygon points="200,8 348,92 348,260 200,344 52,260 52,92" fill="url(#hexGrad)" filter="url(#shadow)"/>
+  <polygon points="200,20 336,98 336,254 200,332 64,254 64,98" fill="url(#hexFill)"/>
+  <polygon points="200,32 324,104 324,248 200,320 76,248 76,104" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.6"/>
+
+  <!-- Speed lines - red -->
+  <g opacity="0.85">
+    <line x1="270" y1="160" x2="340" y2="142" stroke="#cc0000" stroke-width="4" stroke-linecap="round"/>
+    <line x1="275" y1="175" x2="348" y2="168" stroke="#cc0000" stroke-width="3" stroke-linecap="round"/>
+    <line x1="272" y1="190" x2="344" y2="192" stroke="#cc0000" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="120" y1="165" x2="68" y2="150" stroke="#cc0000" stroke-width="3" stroke-linecap="round"/>
+    <line x1="118" y1="180" x2="62" y2="178" stroke="#cc0000" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Cricket batsman silhouette - simplified but recognizable -->
+  <g fill="#111" transform="translate(200,176) scale(0.82)">
+    <!-- helmet/head -->
+    <ellipse cx="0" cy="-130" rx="22" ry="24" fill="#1a1a1a"/>
+    <rect x="-24" y="-150" width="48" height="28" rx="14" fill="#1a1a1a"/>
+    <!-- grille -->
+    <rect x="-18" y="-138" width="36" height="14" rx="4" fill="#333" opacity="0.8"/>
+
+    <!-- body/torso -->
+    <path d="M-20,-106 C-28,-80 -30,-50 -26,-20 L26,-20 C30,-50 28,-80 20,-106 Z" fill="#1a1a1a"/>
+
+    <!-- back arm (right) + bat -->
+    <path d="M20,-95 C36,-88 52,-75 70,-55 C78,-46 82,-36 80,-28 C78,-20 70,-18 62,-24 C44,-38 28,-54 14,-72 Z" fill="#1a1a1a"/>
+    <!-- bat blade -->
+    <path d="M62,-30 C70,-22 80,-10 90,10 C98,26 96,40 88,44 C80,48 70,40 62,24 C52,4 42,-12 34,-24 Z" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+    <!-- bat handle -->
+    <line x1="12" y1="-74" x2="-4" y2="-96" stroke="#1a1a1a" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- front arm (left) -->
+    <path d="M-20,-92 C-34,-82 -46,-66 -50,-50 C-48,-42 -40,-40 -34,-46 C-28,-58 -18,-74 -10,-84 Z" fill="#1a1a1a"/>
+
+    <!-- legs -->
+    <path d="M-26,-20 C-30,10 -28,50 -22,88 L-10,88 C-8,50 -6,10 -2,-20 Z" fill="#1a1a1a"/>
+    <path d="M2,-20 C6,10 8,50 10,88 L22,88 C28,50 30,10 26,-20 Z" fill="#1a1a1a"/>
+
+    <!-- batting pads -->
+    <rect x="-28" y="30" width="22" height="58" rx="10" fill="#222" stroke="#333" stroke-width="1"/>
+    <rect x="8" y="30" width="22" height="58" rx="10" fill="#222" stroke="#333" stroke-width="1"/>
+
+    <!-- shoes -->
+    <ellipse cx="-16" cy="91" rx="16" ry="7" fill="#111"/>
+    <ellipse cx="16" cy="91" rx="16" ry="7" fill="#111"/>
+  </g>
+
+  <!-- Cricket ball with speed -->
+  <circle cx="318" cy="210" r="16" fill="#cc0000"/>
+  <path d="M312,204 Q318,210 312,216" fill="none" stroke="#8b0000" stroke-width="1.5"/>
+  <path d="M324,204 Q318,210 324,216" fill="none" stroke="#8b0000" stroke-width="1.5"/>
+
+  <!-- Brand text -->
+  <!-- "A" in red italic -->
+  <text x="42" y="386" font-family="Impact, 'Arial Black', sans-serif" font-size="88" font-style="italic" fill="#cc0000" letter-spacing="-2">A</text>
+  <!-- "SPORTS" in black bold -->
+  <text x="100" y="386" font-family="Impact, 'Arial Black', sans-serif" font-size="72" fill="#1a1a1a" letter-spacing="1">SPORTS</text>
+
+  <!-- Horizontal rules + ZONE -->
+  <line x1="30" y1="398" x2="112" y2="398" stroke="#cc0000" stroke-width="3"/>
+  <text x="200" y="416" font-family="Impact, 'Arial Black', sans-serif" font-size="68" fill="#cc0000" text-anchor="middle" letter-spacing="8">ZONE</text>
+  <line x1="288" y1="398" x2="370" y2="398" stroke="#cc0000" stroke-width="3"/>
+
+  <!-- Tagline -->
+  <text x="200" y="440" font-family="'Arial Black', sans-serif" font-size="18" fill="#333" text-anchor="middle" letter-spacing="4">— BUILT FOR THE PITCH. —</text>
+</svg>

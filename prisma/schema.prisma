@@ -1,0 +1,666 @@
+// Futuristic AI Retail Platform — Prisma schema
+// Designed for full platform; M1 gives storefront models business logic,
+// the rest are schema-ready seams for later milestones.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tenancy (multi-tenant / marketplace-ready). M1 seeds one default tenant+store.
+// ─────────────────────────────────────────────────────────────
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stores    Store[]
+  users     User[]
+  products  Product[]
+  categories Category[]
+  orders    Order[]
+  carts     Cart[]
+  mediaAssets MediaAsset[]
+  coupons   Coupon[]
+  giftCards GiftCard[]
+  suppliers Supplier[]
+  purchaseOrders PurchaseOrder[]
+  cmsPages  CmsPage[]
+  trustPosts TrustPost[]
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settings  StoreSettings?
+  domains   StoreDomain[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model StoreSettings {
+  id              String  @id @default(cuid())
+  storeId         String  @unique
+  store           Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  defaultCurrency String  @default("INR")
+  defaultLocale   String  @default("en")
+  supportEmail    String?
+  themeJson       Json?
+}
+
+model StoreDomain {
+  id        String  @id @default(cuid())
+  storeId   String
+  store     Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  domain    String  @unique
+  isPrimary Boolean @default(false)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth + RBAC
+// ─────────────────────────────────────────────────────────────
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  STAFF
+  VENDOR
+  CUSTOMER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  tenantId      String?
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          Role      @default(CUSTOMER)
+  referralCode  String?   @unique // this user's own code to share
+  referredById  String?            // who referred this user
+  referredBy    User?     @relation("Referrals", fields: [referredById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  carts     Cart[]
+  orders    Order[]
+  addresses Address[]
+  reviews   Review[]
+  consents  ConsentLog[]
+  auditLogs AuditLog[]
+  referrals      User[]    @relation("Referrals")
+  loyalty        LoyaltyAccount?
+  referralsMade  Referral[] @relation("Referrer")
+  referralAsReferee Referral[] @relation("Referee")
+
+  @@index([tenantId])
+  @@index([referredById])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Catalog
+// ─────────────────────────────────────────────────────────────
+model Category {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  imageUrl    String?
+  products    Product[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendorId    String?  // marketplace-ready; null = first-party
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  name        String
+  slug        String
+  description String   @db.Text
+  // base price in minor units (paise for INR). Variants may override.
+  priceMinor  Int
+  currency    String   @default("INR")
+  specs       Json?    // flexible specs until EAV lands (M2)
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  rating      Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images       ProductImage[]
+  variants     ProductVariant[]
+  reviews      Review[]
+  productSpecs ProductSpec[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, active])
+  @@index([categoryId])
+}
+
+model ProductSpec {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+
+  @@unique([productId, key])
+  @@index([key, value])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  position  Int     @default(0)
+}
+
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku        String  @unique
+  name       String  // e.g. "256GB / Black"
+  priceMinor Int?    // overrides product price when set
+  optionsJson Json?  // { size: "M", color: "Black" }
+  inventory  Inventory?
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// Inventory + full movement audit trail
+// ─────────────────────────────────────────────────────────────
+model Inventory {
+  id        String  @id @default(cuid())
+  variantId String  @unique
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int     @default(0)
+  reserved  Int     @default(0)
+  lowStockThreshold Int @default(5)
+
+  transactions InventoryTransaction[]
+}
+
+enum InventoryTxnType {
+  RESTOCK
+  SALE
+  RESERVE
+  RELEASE
+  ADJUSTMENT
+  RETURN
+}
+
+model InventoryTransaction {
+  id          String           @id @default(cuid())
+  inventoryId String
+  inventory   Inventory        @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  type        InventoryTxnType
+  delta       Int              // signed change
+  reason      String?
+  refType     String?          // e.g. "Order"
+  refId       String?
+  createdAt   DateTime         @default(now())
+
+  @@index([inventoryId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Commerce
+// ─────────────────────────────────────────────────────────────
+model Cart {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String?  // null for guest (guest carts live in localStorage; DB only when authed)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
+
+  @@index([userId])
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int            @default(1)
+
+  @@unique([cartId, variantId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  number      String      @unique // human-friendly order number
+  status      OrderStatus @default(PENDING)
+  currency    String      @default("INR")
+  subtotalMinor Int
+  taxMinor      Int       @default(0)
+  shippingMinor Int       @default(0)
+  discountMinor Int       @default(0)
+  couponCode    String?
+  giftCardMinor Int       @default(0)
+  giftCardCode  String?
+  totalMinor    Int
+  email         String
+  shippingAddressId String?
+  shippingAddress   Address? @relation(fields: [shippingAddressId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([tenantId, status])
+  @@index([userId])
+}
+
+model OrderItem {
+  id         String         @id @default(cuid())
+  orderId    String
+  order      Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id])
+  name       String         // snapshot of product/variant name
+  unitPriceMinor Int
+  quantity   Int
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider        String        @default("razorpay")
+  providerOrderId String?       // razorpay order id
+  providerPaymentId String?     // razorpay payment id
+  status          PaymentStatus @default(CREATED)
+  amountMinor     Int
+  currency        String        @default("INR")
+  idempotencyKey  String        @unique // guards against duplicate webhook processing
+  rawWebhookJson  Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  postalCode String
+  country   String  @default("IN")
+  phone     String?
+  orders    Order[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// Platform
+// ─────────────────────────────────────────────────────────────
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  title     String?
+  body      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String   // e.g. "payment.captured"
+  entity    String   // e.g. "Order"
+  entityId  String?
+  metaJson  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+}
+
+model FeatureFlag {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  enabled     Boolean @default(false)
+  description String?
+  rolloutJson Json?
+}
+
+model ConsentLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonId    String?  // cookie id for guests
+  category  String   // "necessary" | "analytics" | "marketing"
+  granted   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Media (pairs with S3/MinIO storage)
+// ─────────────────────────────────────────────────────────────
+model MediaAsset {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bucket    String
+  key       String
+  url       String
+  mimeType  String?
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  @@unique([bucket, key])
+  @@index([tenantId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Growth / Marketing (M4)
+// ─────────────────────────────────────────────────────────────
+enum DiscountType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+}
+
+model Coupon {
+  id            String       @id @default(cuid())
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code          String
+  type          DiscountType
+  value         Int          @default(0) // percent (0-100) or fixed minor units; ignored for FREE_SHIPPING
+  minSpendMinor Int          @default(0)
+  maxRedemptions Int?        // null = unlimited
+  timesRedeemed Int          @default(0)
+  active        Boolean      @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@unique([tenantId, code])
+  @@index([tenantId, active])
+}
+
+model LoyaltyAccount {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions LoyaltyTransaction[]
+}
+
+enum LoyaltyTxnType {
+  EARN
+  REDEEM
+  ADJUST
+  REFERRAL_BONUS
+}
+
+model LoyaltyTransaction {
+  id        String         @id @default(cuid())
+  accountId String
+  account   LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type      LoyaltyTxnType
+  points    Int            // signed
+  reason    String?
+  refType   String?
+  refId     String?
+  createdAt DateTime       @default(now())
+
+  @@index([accountId])
+}
+
+enum ReferralStatus {
+  PENDING
+  REWARDED
+}
+
+model Referral {
+  id          String         @id @default(cuid())
+  referrerId  String
+  referrer    User           @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId   String         @unique
+  referee     User           @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  status      ReferralStatus @default(PENDING)
+  rewardedAt  DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([referrerId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Gift cards (M4.2)
+// ─────────────────────────────────────────────────────────────
+model GiftCard {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code         String
+  initialMinor Int
+  balanceMinor Int
+  currency     String   @default("INR")
+  active       Boolean  @default(true)
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  @@unique([tenantId, code])
+  @@index([tenantId, active])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Procurement: suppliers + purchase orders (M2)
+// ─────────────────────────────────────────────────────────────
+model Supplier {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+
+  @@index([tenantId])
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id         String              @id @default(cuid())
+  tenantId   String
+  tenant     Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  status     PurchaseOrderStatus @default(DRAFT)
+  notes      String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  items PurchaseOrderItem[]
+
+  @@index([tenantId, status])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  variantId       String
+  variant         ProductVariant @relation(fields: [variantId], references: [id])
+  quantity        Int
+  unitCostMinor   Int           @default(0)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Headless CMS (M7)
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Trust Wall — admin-published photos, videos, and shorts
+// displayed in the "Where The Trust Builds" storefront section
+// ─────────────────────────────────────────────────────────────
+enum TrustPostType {
+  PHOTO
+  VIDEO
+  SHORT
+}
+
+model TrustPost {
+  id        String        @id @default(cuid())
+  tenantId  String
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type      TrustPostType @default(PHOTO)
+  title     String?
+  caption   String?
+  url       String
+  thumbnail String?
+  position  Int           @default(0)
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([tenantId, active, position])
+}
+
+enum CmsBlockType {
+  BANNER
+  FEATURED_COLLECTION
+  RICH_TEXT
+}
+
+model CmsPage {
+  id        String     @id @default(cuid())
+  tenantId  String
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  slug      String
+  title     String
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  blocks    CmsBlock[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+}
+
+model CmsBlock {
+  id        String       @id @default(cuid())
+  pageId    String
+  page      CmsPage      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type      CmsBlockType
+  position  Int          @default(0)
+  active    Boolean      @default(true)
+  dataJson  Json
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([pageId, position])
+}
