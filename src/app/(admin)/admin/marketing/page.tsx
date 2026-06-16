@@ -65,7 +65,9 @@ export default async function MarketingPage() {
         </div>
       </div>
 
-      <HeroSettingsForm initial={heroSettings} />
+      <section id="hero-settings" className="mb-8">
+        <HeroSettingsForm initial={heroSettings} />
+      </section>
 
       <CouponForm />
 
