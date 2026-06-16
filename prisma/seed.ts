@@ -917,6 +917,56 @@ async function main() {
     create: { id: "seed-supplier-asz", tenantId: tenant.id, name: "A Sports Zone Distributors", email: "trade@asportszone.com" },
   });
 
+  // ── Trust posts (Where The Trust Builds) ────────────────────
+  // Add a few demo posts so the storefront "Where The Trust Builds" section appears
+  await prisma.trustPost.upsert({
+    where: { id: "seed-trust-video-1" },
+    update: {},
+    create: {
+      id: "seed-trust-video-1",
+      tenantId: tenant.id,
+      type: "VIDEO",
+      title: "Real Player Review: EM Pro Player",
+      caption: "Unboxing and first impressions from a club cricketer.",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      position: 0,
+      active: true,
+    },
+  });
+
+  await prisma.trustPost.upsert({
+    where: { id: "seed-trust-short-1" },
+    update: {},
+    create: {
+      id: "seed-trust-short-1",
+      tenantId: tenant.id,
+      type: "SHORT",
+      title: "On the Pitch Highlights",
+      caption: "Quick customer clips showcasing the gear in action.",
+      url: "https://youtu.be/3JZ_D3ELwOQ",
+      thumbnail: "https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg",
+      position: 1,
+      active: true,
+    },
+  });
+
+  await prisma.trustPost.upsert({
+    where: { id: "seed-trust-photo-1" },
+    update: {},
+    create: {
+      id: "seed-trust-photo-1",
+      tenantId: tenant.id,
+      type: "PHOTO",
+      title: "Customer Match Day",
+      caption: "Fans sharing match day photos with our kit.",
+      url: "https://cdn.shopify.com/s/files/1/0606/5386/2996/files/product-image-1.webp?v=1773746302",
+      thumbnail: "https://cdn.shopify.com/s/files/1/0606/5386/2996/files/product-image-1.webp?v=1773746302",
+      position: 2,
+      active: true,
+    },
+  });
+
   console.log(
     `✔ Seeded A Sports Zone store: ${PRODUCTS.length} products across ${CATEGORIES.length} categories.`,
   );
