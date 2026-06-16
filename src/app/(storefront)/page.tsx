@@ -12,7 +12,7 @@ import { toCardData } from "@/types/catalog";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
 import type { HeroProduct } from "@/components/magic/hero";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 const FEATURES = [
   { icon: Truck, title: "Free shipping", text: "On orders over ₹3,000" },

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Package, LogOut, Gift, Sparkles, Download, ShieldX } from "lucide-react";

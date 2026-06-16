@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Truck } from "lucide-react";
 import { listSuppliers, listPurchaseOrders } from "@/server/services/admin";
 import { createReorderPOAction } from "@/server/actions/admin";

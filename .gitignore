@@ -45,3 +45,5 @@ backups/
 
 # Uploaded media (ephemeral on Vercel — use S3 in prod)
 /public/uploads/
+
+.vercel

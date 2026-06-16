@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { listCustomers } from "@/server/services/admin";
 import { Table, THead, TH, TR, TD } from "@/components/admin/table";

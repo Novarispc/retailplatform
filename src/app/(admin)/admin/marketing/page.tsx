@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Megaphone } from "lucide-react";
 import { listCoupons, listGiftCards } from "@/server/services/admin";
 import { toggleCouponAction } from "@/server/actions/admin";

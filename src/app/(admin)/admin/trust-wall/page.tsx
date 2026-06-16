@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Image from "next/image";
 import { Eye, EyeOff, Trash2, Film, ImageIcon, Video } from "lucide-react";
 import { prisma } from "@/lib/prisma";

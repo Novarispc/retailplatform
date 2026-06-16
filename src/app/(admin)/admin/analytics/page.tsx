@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { TrendingUp, IndianRupee, ShoppingCart, Repeat, UserPlus, Percent } from "lucide-react";
 import { getAnalytics } from "@/server/services/analytics";
 import { AnalyticsCharts } from "@/components/admin/analytics-charts";

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, ArrowUpRight } from "lucide-react";
 import { Sparkles } from "lucide-react";

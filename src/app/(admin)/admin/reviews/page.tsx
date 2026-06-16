@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Star, Trash2 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { can } from "@/lib/rbac";

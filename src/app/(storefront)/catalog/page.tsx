@@ -6,6 +6,8 @@ import { searchCatalog, listCategories, listSpecFacets } from "@/server/services
 import { toCardData } from "@/types/catalog";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Shop all products",
   description: "Browse cricket bats, combos, shoes and sports accessories at A Sports Zone — where the trust builds.",
