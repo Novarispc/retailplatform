@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { getStoreProfile } from "@/server/services/store";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,27 +22,31 @@ const geistMono = Geist_Mono({
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
-  title: {
-    default: "ASPORTS ZONE — Built for the Pitch",
-    template: "%s · ASPORTS ZONE",
-  },
-  description:
-    "ASPORTS ZONE — Jodhpur's trusted cricket & sports store. Bats, combos, shoes and accessories from 360, BDM, DSC, EM and more. Where the trust builds.",
-  keywords: ["cricket equipment", "cricket bat", "cricket shoes", "sports accessories", "BDM cricket", "DSC cricket", "360 cricket", "Jodhpur cricket store"],
-  openGraph: {
-    type: "website",
-    siteName: "ASPORTS ZONE",
-    title: "ASPORTS ZONE — Built for the Pitch",
-    description: "Jodhpur's trusted cricket & sports store. Where the trust builds.",
-    url: appUrl,
-  },
-  twitter: { card: "summary_large_image" },
-  manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "24Sports" },
-  formatDetection: { telephone: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getStoreProfile().catch(() => ({}));
+  const name = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";
+  return {
+    metadataBase: new URL(appUrl),
+    title: {
+      default: `${name} — Built for the Pitch`,
+      template: `%s · ${name}`,
+    },
+    description:
+      `${name} — Jodhpur's trusted cricket & sports store. Bats, combos, shoes and accessories from 360, BDM, DSC, EM and more. Where the trust builds.`,
+    keywords: ["cricket equipment", "cricket bat", "cricket shoes", "sports accessories", "BDM cricket", "DSC cricket", "360 cricket", "Jodhpur cricket store"],
+    openGraph: {
+      type: "website",
+      siteName: name,
+      title: `${name} — Built for the Pitch`,
+      description: "Jodhpur's trusted cricket & sports store. Where the trust builds.",
+      url: appUrl,
+    },
+    twitter: { card: "summary_large_image" },
+    manifest: "/manifest.webmanifest",
+    appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: name },
+    formatDetection: { telephone: false },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#06070d",
