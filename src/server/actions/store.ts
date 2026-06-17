@@ -18,27 +18,27 @@ async function requireAdmin() {
 export async function updateStoreProfileAction(_prev: unknown, formData: FormData) {
   await requireAdmin();
 
-  const storeName     = String(formData.get("storeName")     ?? "").trim();
-  const address       = String(formData.get("address")       ?? "").trim();
-  const email         = String(formData.get("email")         ?? "").trim();
-  const phone         = String(formData.get("phone")         ?? "").trim();
-  const instagramUrl  = String(formData.get("instagramUrl")  ?? "").trim();
-  const facebookUrl   = String(formData.get("facebookUrl")   ?? "").trim();
-  const linkedinUrl   = String(formData.get("linkedinUrl")   ?? "").trim();
-  const googleMapsUrl = String(formData.get("googleMapsUrl") ?? "").trim();
-  const footerName    = String(formData.get("footerName")    ?? "").trim();
-  const footerAddress = String(formData.get("footerAddress") ?? "").trim();
-
-  let logoUrl: string | undefined;
-  const logoFile = formData.get("logoFile");
-  if (logoFile instanceof File && logoFile.size > 0) {
-    const bytes = await logoFile.arrayBuffer();
-    const ext = (logoFile.name.split(".").pop()?.toLowerCase() || "png").replace(/[^a-z0-9]/g, "") || "png";
-    const key = `brand/logo-${Date.now()}.${ext}`;
-    logoUrl = await getStorage().putObject(key, Buffer.from(bytes), logoFile.type || `image/${ext}`);
-  }
-
   try {
+    const storeName     = String(formData.get("storeName")     ?? "").trim();
+    const address       = String(formData.get("address")       ?? "").trim();
+    const email         = String(formData.get("email")         ?? "").trim();
+    const phone         = String(formData.get("phone")         ?? "").trim();
+    const instagramUrl  = String(formData.get("instagramUrl")  ?? "").trim();
+    const facebookUrl   = String(formData.get("facebookUrl")   ?? "").trim();
+    const linkedinUrl   = String(formData.get("linkedinUrl")   ?? "").trim();
+    const googleMapsUrl = String(formData.get("googleMapsUrl") ?? "").trim();
+    const footerName    = String(formData.get("footerName")    ?? "").trim();
+    const footerAddress = String(formData.get("footerAddress") ?? "").trim();
+
+    let logoUrl: string | undefined;
+    const logoFile = formData.get("logoFile");
+    if (logoFile instanceof File && logoFile.size > 0) {
+      const bytes = await logoFile.arrayBuffer();
+      const ext = (logoFile.name.split(".").pop()?.toLowerCase() || "png").replace(/[^a-z0-9]/g, "") || "png";
+      const key = `brand/logo-${Date.now()}.${ext}`;
+      logoUrl = await getStorage().putObject(key, Buffer.from(bytes), logoFile.type || `image/${ext}`);
+    }
+
     await updateStoreProfile({
       storeName, address, email, phone,
       instagramUrl, facebookUrl, linkedinUrl, googleMapsUrl,
