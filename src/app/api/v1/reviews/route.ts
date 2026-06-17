@@ -35,22 +35,22 @@ export async function POST(req: Request) {
   const existing = await prisma.review.findFirst({ where: { productId, userId: session.user.id } });
   if (existing) return NextResponse.json({ error: "You already reviewed this product." }, { status: 409 });
 
-  const review = await prisma.review.create({
-    data: {
-      productId,
-      userId: session.user.id,
-      rating,
-      title: title || null,
-      body: reviewBody || null,
-    },
-    include: { user: { select: { name: true } } },
-  });
-
-  // Recompute average rating and save it back.
-  const agg = await prisma.review.aggregate({ where: { productId }, _avg: { rating: true }, _count: true });
-  await prisma.product.update({
-    where: { id: productId },
-    data: { rating: agg._avg.rating ?? 0 },
+  // Create the review and recompute the aggregate rating atomically so
+  // concurrent reviews can't compute a stale average off each other.
+  const review = await prisma.$transaction(async (tx) => {
+    const created = await tx.review.create({
+      data: {
+        productId,
+        userId: session.user.id,
+        rating,
+        title: title || null,
+        body: reviewBody || null,
+      },
+      include: { user: { select: { name: true } } },
+    });
+    const agg = await tx.review.aggregate({ where: { productId }, _avg: { rating: true } });
+    await tx.product.update({ where: { id: productId }, data: { rating: agg._avg.rating ?? 0 } });
+    return created;
   });
 
   return NextResponse.json(review, { status: 201 });
@@ -67,10 +67,11 @@ export async function DELETE(req: Request) {
   const review = await prisma.review.findFirst({ where: { productId, userId: session.user.id } });
   if (!review) return NextResponse.json({ error: "Review not found" }, { status: 404 });
 
-  await prisma.review.delete({ where: { id: review.id } });
-
-  const agg = await prisma.review.aggregate({ where: { productId }, _avg: { rating: true } });
-  await prisma.product.update({ where: { id: productId }, data: { rating: agg._avg.rating ?? 0 } });
+  await prisma.$transaction(async (tx) => {
+    await tx.review.delete({ where: { id: review.id } });
+    const agg = await tx.review.aggregate({ where: { productId }, _avg: { rating: true } });
+    await tx.product.update({ where: { id: productId }, data: { rating: agg._avg.rating ?? 0 } });
+  });
 
   return NextResponse.json({ ok: true });
 }

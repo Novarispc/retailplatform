@@ -245,7 +245,7 @@ export async function settlePayment(input: {
     });
     // Convert reservation to sale: decrement quantity + reserved.
     for (const item of payment.order.items) {
-      const inv = item.variant.inventory;
+      const inv = item.variant?.inventory;
       if (!inv) continue;
       await tx.inventory.update({
         where: { id: inv.id },
@@ -266,16 +266,18 @@ export async function settlePayment(input: {
       });
     }
 
-    // Decrement redeemed gift-card balance on settlement.
+    // Decrement redeemed gift-card balance on settlement. Use a guarded atomic
+    // decrement so two concurrent settlements can't both deduct the same balance
+    // (TOCTOU). If the guard fails (balance changed under us), clamp to zero.
     if (payment.order.giftCardMinor > 0 && payment.order.giftCardCode) {
-      const gc = await tx.giftCard.findFirst({
-        where: { code: payment.order.giftCardCode },
+      const amount = payment.order.giftCardMinor;
+      const code = payment.order.giftCardCode;
+      const decremented = await tx.giftCard.updateMany({
+        where: { code, balanceMinor: { gte: amount } },
+        data: { balanceMinor: { decrement: amount } },
       });
-      if (gc) {
-        await tx.giftCard.update({
-          where: { id: gc.id },
-          data: { balanceMinor: Math.max(0, gc.balanceMinor - payment.order.giftCardMinor) },
-        });
+      if (decremented.count === 0) {
+        await tx.giftCard.updateMany({ where: { code }, data: { balanceMinor: 0 } });
       }
     }
 
@@ -289,7 +291,7 @@ export async function settlePayment(input: {
 
   // Low-stock check: re-read updated inventory and emit per-variant alerts.
   for (const item of payment.order.items) {
-    const inv = item.variant.inventory;
+    const inv = item.variant?.inventory;
     if (!inv) continue;
     const updated = await prisma.inventory.findUnique({ where: { id: inv.id } });
     if (!updated) continue;

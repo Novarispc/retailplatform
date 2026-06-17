@@ -2,6 +2,15 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useUiStore } from "@/stores/ui";
+
+const MAX_QTY = 99;
+
+function notifyCap() {
+  if (typeof window !== "undefined") {
+    useUiStore.getState().addToast(`Max ${MAX_QTY} per item.`, "info");
+  }
+}
 
 export interface CartLine {
   variantId: string;
@@ -35,29 +44,31 @@ export const useCart = create<CartState>()(
         set((s) => {
           const existing = s.items.find((i) => i.variantId === line.variantId);
           if (existing) {
+            const next = Math.min(MAX_QTY, existing.quantity + qty);
+            if (next < existing.quantity + qty) notifyCap();
             return {
               items: s.items.map((i) =>
-                i.variantId === line.variantId
-                  ? { ...i, quantity: Math.min(99, i.quantity + qty) }
-                  : i,
+                i.variantId === line.variantId ? { ...i, quantity: next } : i,
               ),
               isOpen: true,
             };
           }
-          return { items: [...s.items, { ...line, quantity: qty }], isOpen: true };
+          return { items: [...s.items, { ...line, quantity: Math.min(MAX_QTY, qty) }], isOpen: true };
         }),
       remove: (variantId) =>
         set((s) => ({ items: s.items.filter((i) => i.variantId !== variantId) })),
-      setQty: (variantId, qty) =>
+      setQty: (variantId, qty) => {
+        if (qty > MAX_QTY) notifyCap();
         set((s) => ({
           items: s.items
             .map((i) =>
               i.variantId === variantId
-                ? { ...i, quantity: Math.max(0, Math.min(99, qty)) }
+                ? { ...i, quantity: Math.max(0, Math.min(MAX_QTY, qty)) }
                 : i,
             )
             .filter((i) => i.quantity > 0),
-        })),
+        }));
+      },
       clear: () => set({ items: [] }),
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),

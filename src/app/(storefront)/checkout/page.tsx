@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Lock, Loader2 } from "lucide-react";
@@ -93,6 +93,11 @@ export default function CheckoutPage() {
     publishableKey: string;
     orderNumber: string;
   } | null>(null);
+  // Cache the Stripe.js Promise — never recreate on re-render.
+  const stripePromise = useMemo(
+    () => (stripeData?.publishableKey ? loadStripe(stripeData.publishableKey) : null),
+    [stripeData],
+  );
 
   const [form, setForm] = useState({
     email: session?.user?.email ?? "",
@@ -163,7 +168,8 @@ export default function CheckoutPage() {
     setError(null);
 
     const addr = addressSchema.safeParse({ ...form });
-    if (!addr.success || !form.email.includes("@")) {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+    if (!addr.success || !emailOk) {
       setError("Please fill in all required fields with valid values.");
       return;
     }
@@ -230,12 +236,11 @@ export default function CheckoutPage() {
 
   // ── Stripe Elements payment phase ───────────────────────────────────────────
   if (stripeData) {
-    const stripe = loadStripe(stripeData.publishableKey);
     return (
       <div className="mx-auto max-w-lg px-6 py-16">
         <h1 className="mb-8 text-3xl font-bold tracking-tight">Complete payment</h1>
         <div className="glass rounded-[var(--radius)] p-6">
-          <Elements stripe={stripe} options={{ clientSecret: stripeData.clientSecret, appearance: { theme: "night" } }}>
+          <Elements stripe={stripePromise} options={{ clientSecret: stripeData.clientSecret, appearance: { theme: "night" } }}>
             <StripePayForm
               orderNumber={stripeData.orderNumber}
               onSuccess={() => { clear(); router.push(`/order/${stripeData.orderNumber}`); }}

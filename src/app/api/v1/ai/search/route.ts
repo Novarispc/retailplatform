@@ -6,6 +6,13 @@ import { logger } from "@/lib/logger";
 
 const bodySchema = z.object({ query: z.string().min(1).max(200) });
 
+// Validate Claude's structured output — never trust a hallucinated enum/shape.
+const filtersSchema = z.object({
+  keywords: z.string().max(200),
+  category: z.enum(["", "batting-gloves", "batting-pads", "helmets", "cricket-shoes", "kit-bags", "cricket-balls", "accessories"]),
+  sort: z.enum(["newest", "price_asc", "price_desc", "rating"]),
+});
+
 // Structured-output schema: Claude maps a natural-language query to catalog filters.
 const FORMAT = {
   type: "json_schema" as const,
@@ -44,8 +51,19 @@ export async function POST(req: Request) {
       output_config: { format: FORMAT },
       messages: [{ role: "user", content: parsed.data.query }],
     });
-    const filters = JSON.parse(textOf(res)) as { keywords: string; category: string; sort: string };
-    return NextResponse.json(filters);
+    let raw: unknown;
+    try {
+      raw = JSON.parse(textOf(res));
+    } catch {
+      // Model returned non-JSON — degrade to a plain keyword search.
+      return NextResponse.json({ keywords: parsed.data.query, category: "", sort: "newest" });
+    }
+    const filters = filtersSchema.safeParse(raw);
+    if (!filters.success) {
+      // Hallucinated enum/shape — fall back to the user's raw query.
+      return NextResponse.json({ keywords: parsed.data.query, category: "", sort: "newest" });
+    }
+    return NextResponse.json(filters.data);
   } catch (err) {
     logger.error({ err }, "ai search failed");
     return NextResponse.json({ error: "AI search failed" }, { status: 500 });

@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getStoreProfile } from "@/server/services/store";
 
+// Render per-request so the manifest reflects the current store name from the DB.
+export const dynamic = "force-dynamic";
+
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const profile = await getStoreProfile().catch(() => ({}));
   const name = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";

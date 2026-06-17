@@ -299,9 +299,11 @@ export async function deleteReviewAction(formData: FormData) {
   const id = String(formData.get("id"));
   const productId = String(formData.get("productId"));
   try {
-    await prisma.review.delete({ where: { id } });
-    const agg = await prisma.review.aggregate({ where: { productId }, _avg: { rating: true } });
-    await prisma.product.update({ where: { id: productId }, data: { rating: agg._avg.rating ?? 0 } });
+    await prisma.$transaction(async (tx) => {
+      await tx.review.delete({ where: { id } });
+      const agg = await tx.review.aggregate({ where: { productId }, _avg: { rating: true } });
+      await tx.product.update({ where: { id: productId }, data: { rating: agg._avg.rating ?? 0 } });
+    });
   } catch (err) {
     logger.error({ err }, "deleteReview failed");
   }

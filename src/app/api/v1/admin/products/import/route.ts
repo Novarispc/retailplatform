@@ -73,8 +73,10 @@ export async function POST(req: Request) {
     const row = data[i];
     const name = row.name?.trim();
     if (!name) { errs.push({ row: i + 2, error: "name required" }); continue; }
+    if (name.length > 200) { errs.push({ row: i + 2, error: "name too long (max 200)" }); continue; }
 
     const slug = row.slug?.trim() ? slugify(row.slug) : slugify(name);
+    if (!slug) { errs.push({ row: i + 2, error: "name produces empty slug" }); continue; }
     const priceMinor = Math.round((Number(row.priceMajor) || 0) * 100);
     const currency = row.currency?.trim().toUpperCase() || "INR";
     const stock = Math.max(0, Number(row.stock) || 0);
@@ -86,6 +88,7 @@ export async function POST(req: Request) {
     let categoryId: string | undefined;
     if (row.category?.trim()) {
       const catName = row.category.trim();
+      if (catName.length > 80) { errs.push({ row: i + 2, error: "category name too long (max 80)" }); continue; }
       const cat = await prisma.category.upsert({
         where: { tenantId_slug: { tenantId: tenant.id, slug: slugify(catName) } },
         update: {},

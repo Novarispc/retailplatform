@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       valid: false,
       error: `Spend at least ₹${(coupon.minSpendMinor / 100).toFixed(0)} to use this code.`,
-    });
+    }, { status: 200 });
   }
 
   return NextResponse.json({
