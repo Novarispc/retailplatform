@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Mail, Phone } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { getStoreProfile } from "@/server/services/store";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -22,6 +23,15 @@ function FacebookIcon({ className }: { className?: string }) {
   );
 }
 
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
 const SHOP_LINKS: [string, string][] = [
   ["All products", "/catalog"],
   ["Cricket bats", "/catalog?category=accessories"],
@@ -35,24 +45,28 @@ const COMPANY_LINKS: [string, string][] = [
   ["Privacy policy", "#"],
 ];
 
-const BRANDS = ["SS TON", "SG", "New Balance", "Gray Nicolls", "RNS", "TYKA", "Asics"];
-
 export async function Footer() {
-  const t = await getTranslations("footer");
-  const session = await auth();
+  const [t, session, profile] = await Promise.all([
+    getTranslations("footer"),
+    auth(),
+    getStoreProfile(),
+  ]);
   const signedIn = !!session?.user;
 
+  const storeName    = profile.storeName    ?? "ASPORTS ZONE";
+  const address      = profile.address      ?? "119, IInd B Road, Sardarpura, Jodhpur, Rajasthan 342003";
+  const email        = profile.email        ?? "asportszone@gmail.com";
+  const phone        = profile.phone;
+  const logoUrl      = profile.logoUrl      ?? "/logo.png";
+  const instagramUrl = profile.instagramUrl ?? "https://instagram.com/asportszone/";
+  const facebookUrl  = profile.facebookUrl  ?? "https://facebook.com/24.Sports.cricket";
+  const linkedinUrl  = profile.linkedinUrl;
+  const footerName   = profile.footerName   ?? storeName;
+  const footerAddress= profile.footerAddress ?? address;
+
   const accountLinks: [string, string][] = signedIn
-    ? [
-        ["My account", "/account"],
-        ["My orders", "/account"],
-        ["Wishlist", "/wishlist"],
-      ]
-    : [
-        ["Sign in", "/sign-in"],
-        ["Create account", "/sign-up"],
-        ["Track order", "/account"],
-      ];
+    ? [["My account", "/account"], ["My orders", "/account"], ["Wishlist", "/wishlist"]]
+    : [["Sign in", "/sign-in"], ["Create account", "/sign-up"], ["Track order", "/account"]];
 
   return (
     <footer className="mt-24 border-t border-[var(--border)] px-6 py-14">
@@ -60,29 +74,45 @@ export async function Footer() {
         {/* brand + contact */}
         <div className="lg:col-span-2">
           <Link href="/" className="mb-4 flex items-center gap-2.5 font-semibold">
-            <Image src="/logo.png" alt="ASPORTS ZONE" width={48} height={48} className="h-12 w-12 rounded-lg" />
-            <span className="text-lg font-bold">ASPORTS<span className="font-normal text-muted"> ZONE</span></span>
+            <Image src={logoUrl} alt={storeName} width={48} height={48} className="h-12 w-12 rounded-lg" />
+            <span className="text-lg font-bold">{storeName}</span>
           </Link>
           <p className="mb-5 max-w-xs text-sm text-muted">{t("tagline")}</p>
           <ul className="space-y-2.5 text-sm text-muted">
             <li className="flex items-start gap-2.5">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
-              119, IInd B Road, Sardarpura, Jodhpur, Rajasthan 342003
+              {footerAddress}
             </li>
             <li className="flex items-center gap-2.5">
               <Mail className="h-4 w-4 shrink-0 text-[var(--accent)]" />
-              <a href="mailto:asportszone@gmail.com" className="transition-colors hover:text-foreground">asportszone@gmail.com</a>
+              <a href={`mailto:${email}`} className="transition-colors hover:text-foreground">{email}</a>
             </li>
+            {phone && (
+              <li className="flex items-center gap-2.5">
+                <Phone className="h-4 w-4 shrink-0 text-[var(--accent)]" />
+                <a href={`tel:${phone}`} className="transition-colors hover:text-foreground">{phone}</a>
+              </li>
+            )}
           </ul>
           <div className="mt-5 flex gap-3">
-            <a href="https://instagram.com/asportszone/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
-              className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] text-muted transition-colors hover:border-[var(--accent)] hover:text-foreground">
-              <InstagramIcon className="h-4 w-4" />
-            </a>
-            <a href="https://facebook.com/24.Sports.cricket" target="_blank" rel="noopener noreferrer" aria-label="Facebook"
-              className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] text-muted transition-colors hover:border-[var(--accent)] hover:text-foreground">
-              <FacebookIcon className="h-4 w-4" />
-            </a>
+            {instagramUrl && (
+              <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] text-muted transition-colors hover:border-[var(--accent)] hover:text-foreground">
+                <InstagramIcon className="h-4 w-4" />
+              </a>
+            )}
+            {facebookUrl && (
+              <a href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook"
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] text-muted transition-colors hover:border-[var(--accent)] hover:text-foreground">
+                <FacebookIcon className="h-4 w-4" />
+              </a>
+            )}
+            {linkedinUrl && (
+              <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] text-muted transition-colors hover:border-[var(--accent)] hover:text-foreground">
+                <LinkedInIcon className="h-4 w-4" />
+              </a>
+            )}
           </div>
         </div>
 
@@ -121,7 +151,7 @@ export async function Footer() {
       </div>
 
       <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-4 border-t border-[var(--border)] pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-        <span>© {new Date().getFullYear()} ASPORTS ZONE. {t("rights")}</span>
+        <span>© {new Date().getFullYear()} {footerName}. {t("rights")}</span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {["360", "BDM", "DSC", "EM", "GOWIN", "Black Panther"].map((b) => <span key={b}>{b}</span>)}
         </span>

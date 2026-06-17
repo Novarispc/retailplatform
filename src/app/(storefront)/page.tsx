@@ -8,7 +8,7 @@ import { ProductGrid } from "@/components/magic/product-grid";
 import { CmsRenderer } from "@/components/magic/cms-renderer";
 import { listFeaturedProducts, listCategories, listProductsBySlugs } from "@/server/services/catalog";
 import { getCmsBlocksForPage } from "@/server/services/cms";
-import { getHeroSettings } from "@/server/services/store";
+import { getHeroSettings, getStoreProfile } from "@/server/services/store";
 import { toCardData } from "@/types/catalog";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
 import { isEnabled } from "@/lib/flags";
@@ -33,13 +33,14 @@ const COLLECTIONS = [
 ];
 
 export default async function HomePage() {
-  const [featured, categories, cmsBlocks, heroSettings, t, assistantEnabled] = await Promise.all([
+  const [featured, categories, cmsBlocks, heroSettings, t, assistantEnabled, storeProfile] = await Promise.all([
     listFeaturedProducts(8),
     listCategories(),
     getCmsBlocksForPage("homepage"),
     getHeroSettings(),
     getTranslations("home"),
     isEnabled("ai_assistant"),
+    getStoreProfile(),
   ]);
 
   // Hero "Now trending" items: admin-selected slugs (ordered), else featured.
@@ -192,38 +193,48 @@ export default async function HomePage() {
             <p className="mb-1 text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent)]">Visit us</p>
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Jodhpur&apos;s cricket store</h2>
             <p className="mt-3 max-w-md text-sm text-muted">
-              Where the trust builds. ASPORTS ZONE stocks cricket bats, shoes, combos and sports
+              Where the trust builds. {storeProfile.storeName ?? "ASPORTS ZONE"} stocks cricket bats, shoes, combos and sports
               accessories from top brands. Visit our store in Sardarpura or order online — we ship
               to 200+ countries.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a
-                href="https://maps.google.com/?q=119+IInd+B+Road+Sardarpura+Jodhpur+Rajasthan+342003"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-white"
-              >
-                Get directions
-              </a>
-              <a
-                href="https://instagram.com/asportszone/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
-              >
-                @asportszone
-              </a>
+              {(storeProfile.googleMapsUrl || true) && (
+                <a
+                  href={storeProfile.googleMapsUrl ?? "https://maps.google.com/?q=119+IInd+B+Road+Sardarpura+Jodhpur+Rajasthan+342003"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  Get directions
+                </a>
+              )}
+              {storeProfile.instagramUrl && (
+                <a
+                  href={storeProfile.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
+                >
+                  @{storeProfile.instagramUrl.replace(/.*instagram\.com\/?/, "").replace(/\/$/, "") || "asportszone"}
+                </a>
+              )}
             </div>
           </div>
           <ul className="space-y-4 self-center text-sm">
             <li className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" />
-              <span>119, IInd B Road, Sardarpura,<br />Jodhpur, Rajasthan 342003</span>
+              <span>{storeProfile.address ?? "119, IInd B Road, Sardarpura, Jodhpur, Rajasthan 342003"}</span>
             </li>
             <li className="flex items-center gap-3">
               <Clock className="h-5 w-5 shrink-0 text-[var(--accent)]" />
               <span>Mon–Sat, 10:00 AM – 9:00 PM</span>
             </li>
+            {storeProfile.phone && (
+              <li className="flex items-center gap-3">
+                <Phone className="h-5 w-5 shrink-0 text-[var(--accent)]" />
+                <a href={`tel:${storeProfile.phone}`} className="transition-colors hover:text-[var(--accent)]">{storeProfile.phone}</a>
+              </li>
+            )}
           </ul>
         </div>
       </section>
