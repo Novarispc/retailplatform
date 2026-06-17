@@ -32,13 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s · ${name}`,
     },
     description:
-      `${name} — Jodhpur's trusted cricket & sports store. Bats, combos, shoes and accessories from 360, BDM, DSC, EM and more. Where the trust builds.`,
+      "From local nets to big matches — trusted cricket gear for every player",
     keywords: ["cricket equipment", "cricket bat", "cricket shoes", "sports accessories", "BDM cricket", "DSC cricket", "360 cricket", "Jodhpur cricket store"],
     openGraph: {
       type: "website",
       siteName: name,
       title: `${name} — Built for the Pitch`,
-      description: "Jodhpur's trusted cricket & sports store. Where the trust builds.",
+      description: "From local nets to big matches — trusted cricket gear for every player",
       url: appUrl,
     },
     twitter: { card: "summary_large_image" },
