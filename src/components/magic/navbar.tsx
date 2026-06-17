@@ -13,7 +13,9 @@ import { useMounted } from "@/lib/use-mounted";
 import { CurrencySwitcher } from "./currency-switcher";
 import { cn } from "@/lib/utils";
 
-export function Navbar() {
+export function Navbar({ logoUrl, storeName }: { logoUrl?: string; storeName?: string }) {
+  const logo = logoUrl ?? "/logo.png";
+  const name = storeName ?? "ASPORTS ZONE";
   const pathname = usePathname();
   const mounted = useMounted();
   const count = useCart((s) => s.count());
@@ -34,9 +36,9 @@ export function Navbar() {
       <header className="sticky top-0 z-40 px-4 pt-4">
         <nav className="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-4 py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <Image src="/logo.png" alt="ASPORTS ZONE" width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg" priority />
-            <span className="hidden sm:block text-base font-bold tracking-tight">ASPORTS<span className="font-normal text-muted"> ZONE</span></span>
-            <span className="sr-only">ASPORTS ZONE home</span>
+            <Image src={logo} alt={name} width={56} height={56} className="h-14 w-14 shrink-0 rounded-lg" priority />
+            <span className="hidden sm:block text-base font-bold tracking-tight">{name}</span>
+            <span className="sr-only">{name} home</span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">

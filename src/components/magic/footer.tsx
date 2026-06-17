@@ -151,7 +151,7 @@ export async function Footer() {
       </div>
 
       <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-4 border-t border-[var(--border)] pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-        <span>© {new Date().getFullYear()} {footerName}. {t("rights")}</span>
+        <span>© {new Date().getFullYear()} {footerName}. All rights reserved.</span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {["360", "BDM", "DSC", "EM", "GOWIN", "Black Panther"].map((b) => <span key={b}>{b}</span>)}
         </span>
