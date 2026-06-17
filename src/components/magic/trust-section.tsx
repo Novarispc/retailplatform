@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getActiveTenant } from "@/lib/tenant";
+import { getStoreProfile } from "@/server/services/store";
 
 function getYouTubeEmbedUrl(url: string): string | null {
   const m = url.match(
@@ -27,7 +28,8 @@ async function getActiveTrustPosts() {
 }
 
 export async function TrustSection() {
-  const posts = await getActiveTrustPosts();
+  const [posts, profile] = await Promise.all([getActiveTrustPosts(), getStoreProfile().catch(() => ({}))]);
+  const storeName = (profile as { storeName?: string }).storeName ?? "Store";
   if (posts.length === 0) return null;
 
   return (
@@ -65,7 +67,7 @@ export async function TrustSection() {
                     allowFullScreen
                     className="h-full w-full"
                     loading="lazy"
-                    title={post.title ?? "ASPORTS ZONE video"}
+                    title={post.title ?? `${storeName} video`}
                   />
                 </div>
               ) : getInstagramEmbedUrl(post.url) ? (
@@ -76,7 +78,7 @@ export async function TrustSection() {
                     allowFullScreen
                     className="h-full w-full"
                     loading="lazy"
-                    title={post.title ?? "ASPORTS ZONE Instagram video"}
+                    title={post.title ?? `${storeName} Instagram video`}
                   />
                 </div>
               ) : isDirectVideoFileUrl(post.url) ? (
@@ -105,7 +107,7 @@ export async function TrustSection() {
                 <div className="relative aspect-square">
                   <Image
                     src={post.url}
-                    alt={post.title ?? "ASPORTS ZONE"}
+                    alt={post.title ?? storeName}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-105"
                     sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"

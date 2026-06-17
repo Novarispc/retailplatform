@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Eye, EyeOff, Trash2, Film, ImageIcon, Video } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getActiveTenant } from "@/lib/tenant";
+import { getStoreProfile } from "@/server/services/store";
 import {
   createTrustPostAction,
   toggleTrustPostAction,
@@ -15,7 +16,8 @@ const TYPE_ICON = { PHOTO: ImageIcon, VIDEO: Video, SHORT: Film } as const;
 const TYPE_LABEL = { PHOTO: "Photo", VIDEO: "Video", SHORT: "Short / Reel" } as const;
 
 export default async function TrustWallPage() {
-  const tenant = await getActiveTenant();
+  const [tenant, profile] = await Promise.all([getActiveTenant(), getStoreProfile().catch(() => ({}))]);
+  const storeName = (profile as { storeName?: string }).storeName ?? "our store";
   const posts = await prisma.trustPost.findMany({
     where: { tenantId: tenant.id },
     orderBy: [{ position: "asc" }, { createdAt: "desc" }],
@@ -81,7 +83,7 @@ export default async function TrustWallPage() {
             <label className="mb-1.5 block text-sm text-muted">Title (optional)</label>
             <input
               name="title"
-              placeholder="Great moment at ASPORTS ZONE…"
+              placeholder={`Great moment at ${storeName}…`}
               className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm focus:border-[var(--accent)] focus:outline-none"
             />
           </div>
