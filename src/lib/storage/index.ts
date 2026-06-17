@@ -45,14 +45,11 @@ class VercelBlobStorage implements StorageProvider {
 
   async putObject(key: string, body: Buffer, mimeType = "application/octet-stream") {
     const { put } = await import("@vercel/blob");
-    const opts: Record<string, unknown> = { access: "public", contentType: mimeType };
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      opts.token = process.env.BLOB_READ_WRITE_TOKEN;
-    } else {
-      // OIDC path: Vercel injects VERCEL_OIDC_TOKEN at runtime; pass storeId explicitly.
-      opts.storeId = process.env.BLOB_STORE_ID;
-    }
-    const { url } = await put(key, body, opts as Parameters<typeof put>[2]);
+    const base = { access: "public" as const, contentType: mimeType };
+    const { url } = process.env.BLOB_READ_WRITE_TOKEN
+      ? await put(key, body, { ...base, token: process.env.BLOB_READ_WRITE_TOKEN })
+      // OIDC path: Vercel injects VERCEL_OIDC_TOKEN at runtime; storeId selects the store.
+      : await put(key, body, { ...base, storeId: process.env.BLOB_STORE_ID });
     return url;
   }
 }
