@@ -35,20 +35,24 @@ class MinioStorage implements StorageProvider {
   }
 }
 
-// Vercel Blob adapter for serverless/production. Active when BLOB_READ_WRITE_TOKEN is set.
+// Vercel Blob adapter — active when BLOB_READ_WRITE_TOKEN or BLOB_STORE_ID is set.
+// Uses BLOB_READ_WRITE_TOKEN when available; falls back to OIDC (VERCEL_OIDC_TOKEN,
+// auto-injected by Vercel runtime) with BLOB_STORE_ID for passwordless server auth.
 class VercelBlobStorage implements StorageProvider {
   publicUrl(key: string) {
-    // Vercel Blob returns the full URL from putObject; this is only used as a fallback.
     return key;
   }
 
   async putObject(key: string, body: Buffer, mimeType = "application/octet-stream") {
     const { put } = await import("@vercel/blob");
-    const { url } = await put(key, body, {
-      access: "public",
-      contentType: mimeType,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
+    const opts: Record<string, unknown> = { access: "public", contentType: mimeType };
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      opts.token = process.env.BLOB_READ_WRITE_TOKEN;
+    } else {
+      // OIDC path: Vercel injects VERCEL_OIDC_TOKEN at runtime; pass storeId explicitly.
+      opts.storeId = process.env.BLOB_STORE_ID;
+    }
+    const { url } = await put(key, body, opts as Parameters<typeof put>[2]);
     return url;
   }
 }
@@ -56,9 +60,10 @@ class VercelBlobStorage implements StorageProvider {
 let provider: StorageProvider | null = null;
 export function getStorage(): StorageProvider {
   if (!provider) {
-    provider = process.env.BLOB_READ_WRITE_TOKEN
-      ? new VercelBlobStorage()
-      : new MinioStorage();
+    provider =
+      process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID
+        ? new VercelBlobStorage()
+        : new MinioStorage();
   }
   return provider;
 }
