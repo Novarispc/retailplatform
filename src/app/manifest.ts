@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
+import { getStoreProfile } from "@/server/services/store";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const profile = await getStoreProfile().catch(() => ({}));
+  const name = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";
   return {
-    name: "ASPORTS ZONE",
-    short_name: "ASportsZone",
+    name,
+    short_name: name.replace(/\s+/g, ""),
     description: "Jodhpur's trusted cricket & sports store — built for the pitch.",
     start_url: "/",
     display: "standalone",

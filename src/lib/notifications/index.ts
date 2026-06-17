@@ -42,9 +42,9 @@ class ResendEmail implements NotificationProvider {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || "ASPORTS ZONE <noreply@asportszone.com>",
+        from: process.env.EMAIL_FROM || "noreply@asportszone.com",
         to: msg.to,
-        subject: msg.subject ?? "ASPORTS ZONE",
+        subject: msg.subject ?? "Notification",
         text: msg.body,
       }),
     });

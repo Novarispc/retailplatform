@@ -4,6 +4,7 @@ import { createCheckoutOrder, CheckoutError } from "@/server/services/order";
 import { auth } from "@/lib/auth";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { logger } from "@/lib/logger";
+import { getStoreProfile } from "@/server/services/store";
 
 export async function POST(req: Request) {
   const ip = clientIp(req.headers);
@@ -27,8 +28,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await createCheckoutOrder(parsed.data, session?.user?.id ?? null);
-    return NextResponse.json(result, { status: 201 });
+    const [result, profile] = await Promise.all([
+      createCheckoutOrder(parsed.data, session?.user?.id ?? null),
+      getStoreProfile().catch(() => ({})),
+    ]);
+    const storeName = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";
+    return NextResponse.json({ ...result, storeName }, { status: 201 });
   } catch (err) {
     if (err instanceof CheckoutError) {
       return NextResponse.json({ error: err.message }, { status: 409 });

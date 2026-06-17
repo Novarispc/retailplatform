@@ -6,10 +6,10 @@ import { Bot, X, Send, Sparkles } from "lucide-react";
 
 // UI shell for the AI shopping assistant. Wiring to the AIGateway lands in M3;
 // for now it shows the experience and explains it's coming.
-export function AiAssistant() {
+export function AiAssistant({ storeName = "ASPORTS ZONE" }: { storeName?: string }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
-    { role: "assistant", text: "Hi! I'm the ASPORTS ZONE assistant. Ask me to find cricket gear, bats, shoes, or combos — where the trust builds!" },
+    { role: "assistant", text: `Hi! I'm the ${storeName} assistant. Ask me to find cricket gear, bats, shoes, or combos — where the trust builds!` },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export function AiAssistant() {
           >
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
               <span className="flex items-center gap-2 font-medium">
-                <Sparkles className="h-4 w-4 text-[var(--accent)]" /> ASPORTS ZONE AI
+                <Sparkles className="h-4 w-4 text-[var(--accent)]" /> {storeName} AI
               </span>
               <button onClick={() => setOpen(false)} aria-label="Close assistant" className="text-muted hover:text-foreground">
                 <X className="h-4 w-4" />
@@ -87,7 +87,7 @@ export function AiAssistant() {
               ))}
               {loading && (
                 <div className="w-fit rounded-2xl bg-[var(--surface-2)] px-3 py-2 text-sm text-muted">
-                  ASPORTS ZONE AI is thinking…
+                  {storeName} AI is thinking…
                 </div>
               )}
             </div>
@@ -96,7 +96,7 @@ export function AiAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder="Ask ASPORTS ZONE AI…"
+                placeholder={`Ask ${storeName} AI…`}
                 className="h-10 flex-1 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 text-sm focus:border-[var(--accent)] focus:outline-none"
               />
               <button

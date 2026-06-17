@@ -214,7 +214,7 @@ export default function CheckoutPage() {
         order_id: data.providerOrderId,
         amount: data.amountMinor,
         currency: data.currency,
-        name: "ASPORTS ZONE",
+        name: data.storeName ?? "ASPORTS ZONE",
         description: `Order ${data.orderNumber}`,
         prefill: { name: form.fullName, email: form.email, contact: form.phone },
         theme: { color: "#4cc9ff" },

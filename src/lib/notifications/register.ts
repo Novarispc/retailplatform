@@ -3,6 +3,7 @@ import { on } from "@/lib/events";
 import { prisma } from "@/lib/prisma";
 import { enqueue } from "@/lib/jobs";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
+import { getStoreProfile } from "@/server/services/store";
 
 let registered = false;
 
@@ -38,13 +39,17 @@ export function registerNotificationHandlers() {
   });
 
   on("CustomerRegistered", async (e) => {
-    const user = await prisma.user.findUnique({ where: { id: e.userId } });
+    const [user, profile] = await Promise.all([
+      prisma.user.findUnique({ where: { id: e.userId } }),
+      getStoreProfile().catch(() => ({})),
+    ]);
     if (!user) return;
+    const storeName = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";
     await enqueue("send-notification", {
       channel: "email",
       to: user.email,
-      subject: "Welcome to ASPORTS ZONE",
-      body: `Welcome${user.name ? `, ${user.name}` : ""}! Use code WELCOME10 for 10% off your first order at ASPORTS ZONE — where the trust builds.`,
+      subject: `Welcome to ${storeName}`,
+      body: `Welcome${user.name ? `, ${user.name}` : ""}! Use code WELCOME10 for 10% off your first order at ${storeName} — where the trust builds.`,
     });
   });
 

@@ -5,13 +5,18 @@ import { ProductGrid } from "@/components/magic/product-grid";
 import { searchCatalog, listCategories, listSpecFacets } from "@/server/services/catalog";
 import { toCardData } from "@/types/catalog";
 import { cn } from "@/lib/utils";
+import { getStoreProfile } from "@/server/services/store";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Shop all products",
-  description: "Browse cricket bats, combos, shoes and sports accessories at ASPORTS ZONE — where the trust builds.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getStoreProfile().catch(() => ({}));
+  const name = (profile as { storeName?: string }).storeName ?? "ASPORTS ZONE";
+  return {
+    title: "Shop all products",
+    description: `Browse cricket bats, combos, shoes and sports accessories at ${name} — where the trust builds.`,
+  };
+}
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
