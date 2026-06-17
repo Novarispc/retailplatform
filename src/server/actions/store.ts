@@ -33,6 +33,9 @@ export async function updateStoreProfileAction(_prev: unknown, formData: FormDat
     let logoUrl: string | undefined;
     const logoFile = formData.get("logoFile");
     if (logoFile instanceof File && logoFile.size > 0) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return { error: "Logo upload requires Vercel Blob. Add BLOB_READ_WRITE_TOKEN in Vercel → Settings → Environment Variables, then redeploy." };
+      }
       const bytes = await logoFile.arrayBuffer();
       const ext = (logoFile.name.split(".").pop()?.toLowerCase() || "png").replace(/[^a-z0-9]/g, "") || "png";
       const key = `brand/logo-${Date.now()}.${ext}`;
