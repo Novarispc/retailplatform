@@ -21,10 +21,19 @@
   --danger: #fb7185;
   --ring: #e8001d;
 
-  /* Elevation scale — consistent depth across cards, sheets, modals */
-  --elev-1: 0 1px 2px -1px rgba(0, 0, 0, 0.4), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
-  --elev-2: 0 4px 12px -4px rgba(0, 0, 0, 0.5), 0 12px 32px -12px rgba(0, 0, 0, 0.55);
-  --elev-3: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 30px 70px -24px rgba(0, 0, 0, 0.65);
+  /* Elevation scale — layered, soft-to-crisp depth across cards, sheets, modals */
+  --elev-1:
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.35),
+    0 2px 4px -2px rgba(0, 0, 0, 0.4),
+    0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --elev-2:
+    0 2px 4px -2px rgba(0, 0, 0, 0.4),
+    0 6px 16px -6px rgba(0, 0, 0, 0.5),
+    0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  --elev-3:
+    0 4px 8px -4px rgba(0, 0, 0, 0.45),
+    0 12px 28px -10px rgba(0, 0, 0, 0.55),
+    0 36px 80px -28px rgba(0, 0, 0, 0.7);
 
   /* Motion tokens — one rhythm everywhere */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -64,7 +73,28 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern", "liga", "calt", "ss01";
+  font-kerning: normal;
+  letter-spacing: -0.011em;
   overflow-x: hidden;
+}
+
+/* Headings: tighter optical tracking + balanced wrapping for a polished masthead feel */
+h1, h2, h3, h4 {
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* Premium text selection */
+::selection {
+  background: color-mix(in oklab, var(--accent) 38%, transparent);
+  color: #fff;
+  text-shadow: none;
 }
 
 /* Cricket-bat cursor on fine-pointer devices (hotspot near blade tip). */
@@ -128,12 +158,15 @@ body {
   .glass {
     position: relative;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 40%),
-      color-mix(in oklab, var(--surface) 72%, transparent);
-    backdrop-filter: blur(18px) saturate(170%);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0) 42%),
+      color-mix(in oklab, var(--surface) 70%, transparent);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
     border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
-    box-shadow: var(--elev-1), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    box-shadow:
+      var(--elev-1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.07),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.012);
   }
 }
 
@@ -141,13 +174,15 @@ body {
 .card-lift {
   transition: transform var(--dur) var(--ease-out),
     box-shadow var(--dur) var(--ease-out),
-    border-color var(--dur) var(--ease-out);
+    border-color var(--dur) var(--ease-out),
+    filter var(--dur) var(--ease-out);
   will-change: transform;
 }
 .card-lift:hover {
   transform: translateY(-4px);
   box-shadow: var(--elev-3);
   border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  filter: brightness(1.04) saturate(1.05);
 }
 
 /* Elevation utilities */
@@ -175,6 +210,7 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 1px 12px color-mix(in oklab, var(--accent) 22%, transparent));
 }
 
 .gradient-border {
@@ -224,15 +260,34 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: linear-gradient(var(--border-strong), var(--border));
+  border: 2px solid transparent;
+  background-clip: padding-box;
   border-radius: 999px;
+  transition: background 0.2s var(--ease-out);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-2); }
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(var(--accent-2), var(--accent));
+  background-clip: padding-box;
+}
+* { scrollbar-color: var(--border-strong) transparent; }
 
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Unified micro-transition on interactive elements — colors/shadow only, never layout */
+a, button, [role="button"], input, select, textarea, summary {
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
 }
 
 /* Respect reduced-motion — kill drift/float/shimmer, keep instant states */
