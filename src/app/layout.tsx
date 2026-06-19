@@ -1,23 +1,37 @@
 import type { Metadata } from "next";
 import type { Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { getStoreProfile } from "@/server/services/store";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Display / headings — editorial, premium, distinctive
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
   preload: true,
 });
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+
+// Body / UI — clean, modern, premium feel at all weights
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
   preload: true,
+});
+
+// Mono — prices, codes, data
+const mono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  preload: false,
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -63,7 +77,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${syne.variable} ${jakarta.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="aurora-bg flex min-h-full flex-col">
         <NextIntlClientProvider>

@@ -59,8 +59,9 @@
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: var(--font-syne), "Syne", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
   --radius: 1rem;
 }
 
@@ -81,10 +82,12 @@ body {
   overflow-x: hidden;
 }
 
-/* Headings: tighter optical tracking + balanced wrapping for a polished masthead feel */
+/* Headings: Syne display font — editorial, premium, distinctive */
 h1, h2, h3, h4 {
-  letter-spacing: -0.022em;
+  font-family: var(--font-display);
+  letter-spacing: -0.028em;
   text-wrap: balance;
+  font-weight: 700;
 }
 p {
   text-wrap: pretty;
