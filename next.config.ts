@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Server Actions default to a 1 MB body limit — too small for logo/image
+  // uploads, which crash with "A server error occurred" before our try/catch.
+  experimental: {
+    serverActions: { bodySizeLimit: "8mb" },
+  },
   images: {
     // Next 16: images.domains deprecated — use remotePatterns.
     remotePatterns: [

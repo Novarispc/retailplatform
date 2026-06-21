@@ -17,10 +17,21 @@ export function StoreSettingsForm({ initial }: { initial: StoreProfile }) {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+
+  const MAX_LOGO_BYTES = 8 * 1024 * 1024; // keep in sync with next.config bodySizeLimit
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFileError(null);
     const file = e.target.files?.[0];
-    if (file) setPreview(URL.createObjectURL(file));
+    if (!file) return;
+    if (file.size > MAX_LOGO_BYTES) {
+      setFileError("Logo is larger than 8 MB. Please choose a smaller image.");
+      e.target.value = "";
+      setPreview(null);
+      return;
+    }
+    setPreview(URL.createObjectURL(file));
   }
 
   const currentLogo = preview ?? initial.logoUrl ?? "/logo.png";
@@ -45,7 +56,8 @@ export function StoreSettingsForm({ initial }: { initial: StoreProfile }) {
               onChange={handleLogoChange}
               className="block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--surface-2)] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-[var(--surface)]"
             />
-            <p className="mt-1 text-xs text-muted">PNG, JPG, SVG or WebP. Leave blank to keep current logo.</p>
+            <p className="mt-1 text-xs text-muted">PNG, JPG, SVG or WebP, up to 8 MB. Leave blank to keep current logo.</p>
+            {fileError && <p className="mt-1 text-xs text-[var(--danger)]">{fileError}</p>}
           </div>
         </div>
       </div>
