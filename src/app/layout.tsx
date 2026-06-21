@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { getStoreProfile } from "@/server/services/store";
+import { getStoreProfile, getThemeColors } from "@/server/services/store";
 
 // Display / headings — editorial, premium, distinctive
 const syne = Syne({
@@ -69,16 +69,36 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+function buildThemeStyle(colors: Awaited<ReturnType<typeof getThemeColors>>): string {
+  const vars: string[] = [];
+  if (colors.accent)     vars.push(`--accent:${colors.accent};--ring:${colors.accent};--energy:${colors.accent};`);
+  if (colors.accent2)    vars.push(`--accent-2:${colors.accent2};`);
+  if (colors.accent3)    vars.push(`--accent-3:${colors.accent3};`);
+  if (colors.background) vars.push(`--background:${colors.background};`);
+  if (colors.surface)    vars.push(`--surface:${colors.surface};`);
+  if (colors.surface2)   vars.push(`--surface-2:${colors.surface2};`);
+  if (colors.surface3)   vars.push(`--surface-3:${colors.surface3};`);
+  if (colors.foreground) vars.push(`--foreground:${colors.foreground};`);
+  if (colors.muted)      vars.push(`--muted:${colors.muted};`);
+  if (colors.border)     vars.push(`--border:${colors.border};`);
+  return vars.length ? `:root{${vars.join("")}}` : "";
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const locale = await getLocale();
+  const [locale, themeColors] = await Promise.all([
+    getLocale(),
+    getThemeColors().catch(() => ({})),
+  ]);
+  const themeStyle = buildThemeStyle(themeColors);
   return (
     <html
       lang={locale}
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${jakarta.variable} ${mono.variable} h-full antialiased`}
     >
+      {themeStyle && <style dangerouslySetInnerHTML={{ __html: themeStyle }} />}
       <body className="aurora-bg flex min-h-full flex-col">
         <NextIntlClientProvider>
           <Providers>{children}</Providers>

@@ -1,6 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { getActiveTenant } from "@/lib/tenant";
 
+export type ThemeColors = {
+  accent?: string;        // primary CTA / brand color
+  accent2?: string;       // hover / secondary accent
+  accent3?: string;       // gradient end / warm accent
+  background?: string;    // page background
+  surface?: string;       // card / panel background
+  surface2?: string;      // elevated surface
+  surface3?: string;      // highest surface
+  foreground?: string;    // primary text
+  muted?: string;         // secondary text
+  border?: string;        // default border
+};
+
 export type StoreProfile = {
   storeName?: string;
   logoUrl?: string;
@@ -58,6 +71,23 @@ export async function updateStoreProfile(profile: StoreProfile) {
   const existing = (themeJson.profile as StoreProfile) ?? {};
   const next = { ...existing, ...profile };
   const nextThemeJson = { ...themeJson, profile: next };
+  return prisma.storeSettings.upsert({
+    where: { storeId: store.id },
+    create: { storeId: store.id, themeJson: nextThemeJson },
+    update: { themeJson: nextThemeJson },
+  });
+}
+
+export async function getThemeColors(): Promise<ThemeColors> {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  return (themeJson.colors as ThemeColors) ?? {};
+}
+
+export async function updateThemeColors(colors: ThemeColors) {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const nextThemeJson = { ...themeJson, colors };
   return prisma.storeSettings.upsert({
     where: { storeId: store.id },
     create: { storeId: store.id, themeJson: nextThemeJson },

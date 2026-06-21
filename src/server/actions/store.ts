@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { assert } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
-import { updateHeroSettings, updateStoreProfile } from "@/server/services/store";
+import { updateHeroSettings, updateStoreProfile, updateThemeColors } from "@/server/services/store";
 import { getStorage } from "@/lib/storage";
 
 async function requireAdmin() {
@@ -55,6 +55,35 @@ export async function updateStoreProfileAction(_prev: unknown, formData: FormDat
   } catch (err) {
     logger.error({ err }, "updateStoreProfile failed");
     return { error: String(err instanceof Error ? err.message : "Failed to save store settings.") };
+  }
+}
+
+export async function updateThemeColorsAction(_prev: unknown, formData: FormData) {
+  await requireAdmin();
+  const hex = (key: string) => {
+    const v = String(formData.get(key) ?? "").trim();
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v : undefined;
+  };
+  try {
+    await updateThemeColors({
+      accent:     hex("accent"),
+      accent2:    hex("accent2"),
+      accent3:    hex("accent3"),
+      background: hex("background"),
+      surface:    hex("surface"),
+      surface2:   hex("surface2"),
+      surface3:   hex("surface3"),
+      foreground: hex("foreground"),
+      muted:      hex("muted"),
+      border:     hex("border"),
+    });
+    revalidatePath("/");
+    revalidatePath("/admin/settings");
+    revalidatePath("/admin", "layout");
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err }, "updateThemeColors failed");
+    return { error: "Failed to save theme colors." };
   }
 }
 
