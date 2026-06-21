@@ -11,7 +11,9 @@ function getYouTubeEmbedUrl(url: string): string | null {
 }
 
 function getInstagramEmbedUrl(url: string): string | null {
-  const m = url.match(/(?:instagram\.com\/(?:p|reel|tv)\/)([A-Za-z0-9_-]+)/);
+  // Handles reel / reels / p / tv, with or without a username prefix
+  // (e.g. instagram.com/reel/ID, instagram.com/reels/ID, instagram.com/user/reel/ID).
+  const m = url.match(/instagram\.com\/(?:[A-Za-z0-9_.]+\/)?(?:reels?|p|tv)\/([A-Za-z0-9_-]+)/);
   return m ? `https://www.instagram.com/p/${m[1]}/embed` : null;
 }
 
