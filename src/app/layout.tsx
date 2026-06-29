@@ -5,7 +5,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { getStoreProfile, getThemeColors } from "@/server/services/store";
+import { getCricketConfig, getStoreProfile, getThemeColors } from "@/server/services/store";
+import { resolveActiveCricketTheme, buildCricketThemeCss, resolveTagline } from "@/lib/cricket-themes";
 
 // Display / headings — editorial, premium, distinctive
 const syne = Syne({
@@ -69,7 +70,12 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-function buildThemeStyle(colors: Awaited<ReturnType<typeof getThemeColors>>): string {
+function buildThemeStyle(
+  base: Awaited<ReturnType<typeof getThemeColors>>,
+  festival: Partial<Awaited<ReturnType<typeof getThemeColors>>> = {},
+): string {
+  // Festival overrides win over the admin-configured base palette while active.
+  const colors = { ...base, ...festival };
   const vars: string[] = [];
   if (colors.accent)     vars.push(`--accent:${colors.accent};--ring:${colors.accent};--energy:${colors.accent};`);
   if (colors.accent2)    vars.push(`--accent-2:${colors.accent2};`);
@@ -87,19 +93,40 @@ function buildThemeStyle(colors: Awaited<ReturnType<typeof getThemeColors>>): st
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [locale, themeColors] = await Promise.all([
+  const [locale, themeColors, cricketCfg] = await Promise.all([
     getLocale(),
     getThemeColors().catch(() => ({})),
+    getCricketConfig().catch(() => null),
   ]);
-  const themeStyle = buildThemeStyle(themeColors);
+  const mode = cricketCfg?.mode === "light" ? "light" : "dark";
+  const cricket = cricketCfg ? resolveActiveCricketTheme(cricketCfg, new Date()) : null;
+  const isDefault = !cricket || cricket.slug === "default";
+  const tagline = cricket && cricketCfg ? resolveTagline(cricketCfg, cricket) : "";
+  // Every theme (incl. the house default) injects a full dark/light palette +
+  // cinematic background. For the default theme in DARK mode we ALSO layer the
+  // admin-configured custom colors on top (so the Theme Colors panel still wins).
+  const cricketCss = cricket ? buildCricketThemeCss(cricket, mode) : "";
+  const themeStyle = isDefault && mode === "dark" ? buildThemeStyle(themeColors) : "";
   return (
     <html
       lang={locale}
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${jakarta.variable} ${mono.variable} h-full antialiased`}
     >
-      {themeStyle && <style dangerouslySetInnerHTML={{ __html: themeStyle }} />}
+      {/* Theme palette first; admin custom colors (default+dark) layered after so they win.
+          precedence lets React 19 hoist these into <head> — a bare <style> under <html> is invalid. */}
+      {cricketCss && (
+        <style href="nova-cricket-theme" precedence="default">
+          {cricketCss}
+        </style>
+      )}
+      {themeStyle && (
+        <style href="nova-theme-palette" precedence="default">
+          {themeStyle}
+        </style>
+      )}
       <body className="aurora-bg flex min-h-full flex-col">
+        {cricket && <div className="cricket-tagline" aria-hidden="true">{tagline}</div>}
         <NextIntlClientProvider>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>

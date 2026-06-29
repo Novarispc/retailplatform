@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Users, Store, Megaphone, TrendingUp, Truck, Star, LayoutTemplate, Film, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, Store, Megaphone, TrendingUp, Truck, Star, LayoutTemplate, Film, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -17,6 +17,7 @@ const LINKS = [
   { href: "/admin/suppliers", label: "Suppliers", icon: Truck },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/trust-wall", label: "Trust Wall", icon: Film },
+  { href: "/admin/themes", label: "Cricket Themes", icon: Sparkles },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

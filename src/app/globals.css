@@ -5,21 +5,22 @@
   Deep space background, red→orange accent, liquid-glass surfaces.
 */
 :root {
-  --background: #06070d;
-  --surface: #0c0e18;
-  --surface-2: #11141f;
-  --surface-3: #161a28;
-  --foreground: #eef0f6;
-  --muted: #9aa3b8;
-  --border: #1e2233;
-  --border-strong: #2a3047;
-  --accent: #e8001d;
-  --accent-2: #ff4444;
-  --accent-3: #ff8c00;
-  --energy: #e8001d;   /* brand red */
+  --background: #0a0b14;
+  --surface: #11131f;
+  --surface-2: #171a2a;
+  --surface-3: #1e2233;
+  --foreground: #eceefb;
+  --muted: #9aa0bd;
+  --border: #242843;
+  --border-strong: #323858;
+  --accent: #6d5efc;
+  --accent-2: #ffb347;
+  --accent-3: #a99bff;
+  --energy: #6d5efc;   /* brand indigo */
   --success: #34d399;
   --danger: #fb7185;
-  --ring: #e8001d;
+  --ring: #6d5efc;
+  --on-accent: #ffffff; /* text/icon color on filled accent surfaces (themes override) */
 
   /* Elevation scale — layered, soft-to-crisp depth across cards, sheets, modals */
   --elev-1:

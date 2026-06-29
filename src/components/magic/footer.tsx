@@ -34,15 +34,15 @@ function LinkedInIcon({ className }: { className?: string }) {
 
 const SHOP_LINKS: [string, string][] = [
   ["All products", "/catalog"],
-  ["Cricket bats", "/catalog?category=accessories"],
-  ["Shoes", "/catalog?category=cricket-shoes"],
-  ["Combos & kits", "/catalog"],
+  ["Cricket bats", "/catalog?category=cricket-bats"],
+  ["Cricket shoes", "/catalog?category=cricket-shoes"],
+  ["Combos & kits", "/catalog?category=combos"],
 ];
 
 const COMPANY_LINKS: [string, string][] = [
-  ["About us", "#about"],
+  ["About us", "/about"],
   ["Track order", "/account"],
-  ["Privacy policy", "#"],
+  ["Privacy policy", "/privacy"],
 ];
 
 export async function Footer() {

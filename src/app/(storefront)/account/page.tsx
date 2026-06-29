@@ -5,6 +5,7 @@ import { Package, LogOut, Gift, Sparkles, Download, ShieldX } from "lucide-react
 import { auth, signOut } from "@/lib/auth";
 import { listUserOrders } from "@/server/services/order";
 import { getLoyalty, ensureReferralCode } from "@/server/services/loyalty";
+import { getLoyaltySettings } from "@/server/services/store";
 import { deleteUserAccount } from "@/server/services/account";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +25,15 @@ export default async function AccountPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in?from=/account");
 
-  const [orders, loyalty, referralCode] = await Promise.all([
+  const [orders, loyalty, referralCode, loyaltySettings] = await Promise.all([
     listUserOrders(session.user.id),
     getLoyalty(session.user.id),
     ensureReferralCode(session.user.id),
+    getLoyaltySettings(),
   ]);
+  const programName = loyaltySettings.programName ?? "ASZ Points";
+  const earnRateRupees = loyaltySettings.earnRateMinor ? loyaltySettings.earnRateMinor / 100 : 10;
+  const pointsDescription = loyaltySettings.description ?? `Earn 1 point per ₹${earnRateRupees} spent.`;
   const referralLink = `${appUrl}/sign-up?ref=${referralCode}`;
 
   return (
@@ -57,10 +62,10 @@ export default async function AccountPage() {
         <div className="glass rounded-[var(--radius)] p-6">
           <div className="mb-2 flex items-center gap-2 text-muted">
             <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-            <span className="text-xs uppercase tracking-wide">ASZ Points</span>
+            <span className="text-xs uppercase tracking-wide">{programName}</span>
           </div>
           <p className="text-3xl font-bold gradient-text">{loyalty?.points ?? 0}</p>
-          <p className="mt-1 text-xs text-muted">Earn 1 point per ₹10 spent.</p>
+          <p className="mt-1 text-xs text-muted">{pointsDescription}</p>
         </div>
         <div className="glass rounded-[var(--radius)] p-6">
           <div className="mb-2 flex items-center gap-2 text-muted">

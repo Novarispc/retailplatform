@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getActiveTenant } from "@/lib/tenant";
+import { DEFAULT_CRICKET_CONFIG, type CricketThemeConfig } from "@/lib/cricket-themes";
 
 export type ThemeColors = {
   accent?: string;        // primary CTA / brand color
@@ -88,6 +89,49 @@ export async function updateThemeColors(colors: ThemeColors) {
   const store = await getStoreWithSettings();
   const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
   const nextThemeJson = { ...themeJson, colors };
+  return prisma.storeSettings.upsert({
+    where: { storeId: store.id },
+    create: { storeId: store.id, themeJson: nextThemeJson },
+    update: { themeJson: nextThemeJson },
+  });
+}
+
+export async function getCricketConfig(): Promise<CricketThemeConfig> {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const saved = (themeJson.cricket as Partial<CricketThemeConfig>) ?? {};
+  return { ...DEFAULT_CRICKET_CONFIG, ...saved };
+}
+
+export async function updateCricketConfig(patch: Partial<CricketThemeConfig>) {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const existing = (themeJson.cricket as Partial<CricketThemeConfig>) ?? {};
+  const cricket = { ...DEFAULT_CRICKET_CONFIG, ...existing, ...patch };
+  const nextThemeJson = { ...themeJson, cricket };
+  return prisma.storeSettings.upsert({
+    where: { storeId: store.id },
+    create: { storeId: store.id, themeJson: nextThemeJson },
+    update: { themeJson: nextThemeJson },
+  });
+}
+
+export type LoyaltySettings = {
+  programName?: string;
+  earnRateMinor?: number; // paise per 1 point (default 1000 = ₹10)
+  description?: string;
+};
+
+export async function getLoyaltySettings(): Promise<LoyaltySettings> {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  return (themeJson.loyalty as LoyaltySettings) ?? {};
+}
+
+export async function updateLoyaltySettings(settings: LoyaltySettings) {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const nextThemeJson = { ...themeJson, loyalty: settings };
   return prisma.storeSettings.upsert({
     where: { storeId: store.id },
     create: { storeId: store.id, themeJson: nextThemeJson },

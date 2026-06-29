@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { getAnthropic, aiEnabled, CHAT_MODEL, textOf } from "@/lib/ai/claude";
-import { searchCatalog } from "@/server/services/catalog";
+import { searchCatalog, listCategories } from "@/server/services/catalog";
 import { formatMoney, type CurrencyCode } from "@/lib/money";
 import { rateLimit, clientIp } from "@/lib/ratelimit";
 import { logger } from "@/lib/logger";
@@ -21,21 +21,25 @@ Help customers discover products, compare options, and answer questions.
 Use the search_products tool to ground every product recommendation in the real catalog — never invent products or prices.
 Be concise and friendly. When you recommend items, mention the product name and price. If nothing matches, say so honestly.`;
 
-const TOOLS: Anthropic.Tool[] = [
-  {
-    name: "search_products",
-    description:
-      "Search the ASPORTS ZONE catalog. Call this whenever the user asks about products, recommendations, comparisons, or availability.",
-    input_schema: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Free-text search terms" },
-        category: { type: "string", enum: ["batting-gloves", "batting-pads", "helmets", "cricket-shoes", "kit-bags", "cricket-balls", "accessories"], description: "Optional category filter" },
+// Tool definitions are built per-request so the category enum always reflects
+// the live catalog rather than a hardcoded list that silently drifts.
+function buildTools(categorySlugs: string[]): Anthropic.Tool[] {
+  return [
+    {
+      name: "search_products",
+      description:
+        "Search the ASPORTS ZONE catalog. Call this whenever the user asks about products, recommendations, comparisons, or availability.",
+      input_schema: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Free-text search terms" },
+          category: { type: "string", enum: categorySlugs, description: "Optional category filter" },
+        },
+        required: ["query"],
       },
-      required: ["query"],
     },
-  },
-];
+  ];
+}
 
 async function runTool(input: { query?: string; category?: string }) {
   const result = await searchCatalog({ query: input.query, categorySlug: input.category, pageSize: 6 });
@@ -68,6 +72,9 @@ export async function POST(req: Request) {
   }));
 
   try {
+    const categories = await listCategories();
+    const tools = buildTools(categories.map((c) => c.slug));
+
     // Manual agentic loop: let Claude call search_products until it answers.
     for (let i = 0; i < 4; i++) {
       const res = await client.messages.create({
@@ -75,7 +82,7 @@ export async function POST(req: Request) {
         max_tokens: 1024,
         thinking: { type: "adaptive" },
         system: SYSTEM,
-        tools: TOOLS,
+        tools,
         messages,
       });
 

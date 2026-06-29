@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { updateThemeColorsAction } from "@/server/actions/store";
 import type { ThemeColors } from "@/server/services/store";
+import { ColorField, type PreviewKind } from "@/components/ui/color-field";
 
 // ── Preset palettes ─────────────────────────────────────────────────────────
 const PRESETS: { name: string; colors: Required<ThemeColors> }[] = [
@@ -48,17 +49,23 @@ const PRESETS: { name: string; colors: Required<ThemeColors> }[] = [
   },
 ];
 
-const COLOR_FIELDS: { key: keyof ThemeColors; label: string; hint: string }[] = [
-  { key: "accent",     label: "Primary Accent",    hint: "Brand color, CTAs, links" },
-  { key: "accent2",    label: "Accent 2",           hint: "Hover states, secondary highlights" },
-  { key: "accent3",    label: "Accent 3",           hint: "Gradients, warm highlights" },
-  { key: "background", label: "Page Background",    hint: "Deepest background layer" },
-  { key: "surface",    label: "Surface",            hint: "Card / panel background" },
-  { key: "surface2",   label: "Surface 2",          hint: "Elevated surfaces, modals" },
-  { key: "surface3",   label: "Surface 3",          hint: "Highest elevation layer" },
-  { key: "foreground", label: "Foreground",         hint: "Primary body text" },
-  { key: "muted",      label: "Muted Text",         hint: "Secondary / caption text" },
-  { key: "border",     label: "Border",             hint: "Dividers, input outlines" },
+const COLOR_FIELDS: {
+  key: keyof ThemeColors;
+  label: string;
+  hint: string;
+  preview: PreviewKind;
+  pairedKey?: keyof ThemeColors;
+}[] = [
+  { key: "accent",     label: "Primary Accent",    hint: "Brand color, CTAs, buttons",          preview: "solidButton" },
+  { key: "accent2",    label: "Accent 2",           hint: "Hover states, secondary highlights",  preview: "accentText" },
+  { key: "accent3",    label: "Accent 3",           hint: "Gradients, badges, warm highlights",  preview: "gradientBadge", pairedKey: "accent" },
+  { key: "background", label: "Page Background",    hint: "Deepest background layer",            preview: "pageBg" },
+  { key: "surface",    label: "Surface",            hint: "Card / panel background",             preview: "surface" },
+  { key: "surface2",   label: "Surface 2",          hint: "Elevated surfaces, modals",           preview: "elevatedSurface" },
+  { key: "surface3",   label: "Surface 3",          hint: "Highest elevation, dropdowns",        preview: "topSurface" },
+  { key: "foreground", label: "Foreground",         hint: "Primary headings & body text",        preview: "bodyText" },
+  { key: "muted",      label: "Muted Text",         hint: "Secondary / caption text",            preview: "mutedText" },
+  { key: "border",     label: "Border",             hint: "Dividers, input outlines",            preview: "borderInput" },
 ];
 
 const DEFAULTS: Required<ThemeColors> = PRESETS[0].colors;
@@ -78,7 +85,7 @@ export function ThemeColorsForm({ initial }: Props) {
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-8">
       {/* Hidden inputs — always send current colors */}
       {COLOR_FIELDS.map(({ key }) => (
         <input key={key} type="hidden" name={key} value={colors[key] ?? DEFAULTS[key]} />
@@ -95,27 +102,21 @@ export function ThemeColorsForm({ initial }: Props) {
               onClick={() => applyPreset(p)}
               className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium transition-colors hover:border-[var(--accent)] hover:text-foreground"
             >
-              <span
-                className="h-3 w-3 rounded-full ring-1 ring-white/10"
-                style={{ background: p.colors.accent }}
-              />
+              <span className="h-3 w-3 rounded-full ring-1 ring-white/10" style={{ background: p.colors.accent }} />
               {p.name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Live preview swatch */}
+      {/* Live palette preview bar */}
       <div
         className="flex flex-wrap gap-3 rounded-2xl border p-4"
         style={{ background: colors.background, borderColor: colors.border }}
       >
         {(["accent", "accent2", "accent3", "surface", "surface2", "surface3", "foreground", "muted", "border"] as const).map((k) => (
           <div key={k} className="flex flex-col items-center gap-1">
-            <span
-              className="h-8 w-8 rounded-full ring-1 ring-white/10"
-              style={{ background: colors[k] ?? DEFAULTS[k] }}
-            />
+            <span className="h-8 w-8 rounded-full ring-1 ring-white/10" style={{ background: colors[k] ?? DEFAULTS[k] }} />
             <span className="text-[9px] font-mono" style={{ color: colors.foreground, opacity: 0.5 }}>{k}</span>
           </div>
         ))}
@@ -127,40 +128,19 @@ export function ThemeColorsForm({ initial }: Props) {
         </div>
       </div>
 
-      {/* Individual color pickers */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {COLOR_FIELDS.map(({ key, label, hint }) => (
-          <div key={key} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-            <label
-              htmlFor={`color-${key}`}
-              className="relative h-10 w-10 shrink-0 cursor-pointer overflow-hidden rounded-lg ring-2 ring-[var(--border)] transition-all hover:ring-[var(--accent)]"
-            >
-              <input
-                id={`color-${key}`}
-                type="color"
-                value={colors[key] ?? DEFAULTS[key]}
-                onChange={(e) => setColor(key, e.target.value)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-              <span
-                className="block h-full w-full rounded-lg"
-                style={{ background: colors[key] ?? DEFAULTS[key] }}
-              />
-            </label>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{label}</p>
-              <p className="truncate text-xs text-muted">{hint}</p>
-              <input
-                type="text"
-                value={colors[key] ?? DEFAULTS[key]}
-                onChange={(e) => {
-                  const v = e.target.value.trim();
-                  if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setColor(key, v);
-                }}
-                maxLength={7}
-                className="mt-1 h-7 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 font-mono text-xs focus:border-[var(--accent)] focus:outline-none"
-              />
-            </div>
+      {/* Individual color pickers with live previews */}
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-2">
+        {COLOR_FIELDS.map(({ key, label, hint, preview, pairedKey }) => (
+          <div key={key} className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+            <ColorField
+              label={label}
+              name={`_display_${key}`}
+              value={colors[key] ?? DEFAULTS[key]}
+              hint={hint}
+              preview={preview}
+              pairedValue={pairedKey ? colors[pairedKey] : undefined}
+              onChange={(val) => setColor(key, val)}
+            />
           </div>
         ))}
       </div>

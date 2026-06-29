@@ -127,8 +127,8 @@ export function Hero({
       ))}
 
       <div className="relative z-10 mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.85fr] items-center">
-        <div className="relative z-20 space-y-8 text-white">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.28em] text-white/80">
+        <div className="relative z-20 space-y-8 text-foreground">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-4 py-1.5 text-xs uppercase tracking-[0.28em] text-muted">
             <Sparkles className="h-4 w-4 text-[var(--accent)]" />
             Featured showcase
           </div>
@@ -161,7 +161,7 @@ export function Hero({
 
           <div className="grid gap-3 sm:grid-cols-3">
             {heroBadges.map((badge) => (
-              <div key={badge.title} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div key={badge.title} className="rounded-3xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
                 <p className="text-sm font-semibold">{badge.title}</p>
                 <p className="mt-1 text-xs text-muted">{badge.subtitle}</p>
               </div>
@@ -174,7 +174,7 @@ export function Hero({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="relative z-20 overflow-hidden rounded-[2rem] border border-white/10 bg-[#071018]/95 p-6 shadow-[0_38px_90px_-26px_rgba(0,0,0,0.7)]"
+            className="relative z-20 overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_38px_90px_-26px_rgba(0,0,0,0.45)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -221,7 +221,7 @@ export function Hero({
                   className={`group relative flex-shrink-0 h-16 w-16 overflow-hidden rounded-lg border p-0 transition ${
                     index === activeIndex
                       ? "ring-2 ring-[var(--accent)]"
-                      : "border-white/10 bg-white/5 hover:border-white/20"
+                      : "border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--border-strong)]"
                   }`}
                 >
                   <div className="relative h-full w-full bg-[var(--surface-2)]">

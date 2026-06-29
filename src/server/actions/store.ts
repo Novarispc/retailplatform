@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { assert } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
-import { updateHeroSettings, updateStoreProfile, updateThemeColors } from "@/server/services/store";
+import { getCricketConfig, updateCricketConfig, updateHeroSettings, updateLoyaltySettings, updateStoreProfile, updateThemeColors } from "@/server/services/store";
+import { getCricketTheme, type ThemeMode } from "@/lib/cricket-themes";
 import { getStorage } from "@/lib/storage";
 
 async function requireAdmin() {
@@ -84,6 +85,75 @@ export async function updateThemeColorsAction(_prev: unknown, formData: FormData
   } catch (err) {
     logger.error({ err }, "updateThemeColors failed");
     return { error: "Failed to save theme colors." };
+  }
+}
+
+// ── Cricket theme engine ──
+
+export async function activateCricketThemeAction(slug: string) {
+  await requireAdmin();
+  // Validate against known themes; getCricketTheme falls back to default.
+  const theme = getCricketTheme(slug);
+  await updateCricketConfig({ activeSlug: theme.slug });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function setCricketModeAction(mode: ThemeMode) {
+  await requireAdmin();
+  await updateCricketConfig({ mode: mode === "light" ? "light" : "dark" });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function saveCricketScheduleAction(formData: FormData) {
+  await requireAdmin();
+  const scheduledSlug  = String(formData.get("scheduledSlug")  ?? "").trim();
+  const scheduledStart = String(formData.get("scheduledStart") ?? "").trim();
+  const scheduledEnd   = String(formData.get("scheduledEnd")   ?? "").trim();
+  // Normalise unknown slug to "" so the resolver ignores it.
+  const slug = scheduledSlug && getCricketTheme(scheduledSlug).slug === scheduledSlug ? scheduledSlug : "";
+  await updateCricketConfig({ scheduledSlug: slug, scheduledStart, scheduledEnd });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function setCricketTaglineAction(formData: FormData) {
+  await requireAdmin();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const tagline = String(formData.get("tagline") ?? "").trim().slice(0, 60);
+  if (!slug) return;
+  const cfg = await getCricketConfig();
+  const taglines = { ...(cfg.taglines ?? {}), [slug]: tagline };
+  await updateCricketConfig({ taglines });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function clearCricketScheduleAction() {
+  await requireAdmin();
+  await updateCricketConfig({ scheduledSlug: "", scheduledStart: "", scheduledEnd: "" });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function updateLoyaltySettingsAction(_prev: unknown, formData: FormData) {
+  await requireAdmin();
+  const programName   = String(formData.get("programName")   ?? "").trim();
+  const earnRateRupees = Number(formData.get("earnRateRupees") ?? "10");
+  const description   = String(formData.get("description")   ?? "").trim();
+  try {
+    await updateLoyaltySettings({
+      programName:   programName   || undefined,
+      earnRateMinor: earnRateRupees > 0 ? earnRateRupees * 100 : 1000,
+      description:   description   || undefined,
+    });
+    revalidatePath("/account");
+    revalidatePath("/admin/settings");
+    return { ok: true };
+  } catch (err) {
+    logger.error({ err }, "updateLoyaltySettings failed");
+    return { error: "Failed to save loyalty settings." };
   }
 }
 
