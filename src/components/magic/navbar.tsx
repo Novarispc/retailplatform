@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { useCart } from "@/stores/cart";
 import { useMounted } from "@/lib/use-mounted";
 import { CurrencySwitcher } from "./currency-switcher";
+import { ThemeModeToggle } from "./theme-mode-toggle";
 import { cn } from "@/lib/utils";
 
 export function Navbar({ logoUrl, storeName }: { logoUrl?: string; storeName?: string }) {
@@ -63,6 +64,7 @@ export function Navbar({ logoUrl, storeName }: { logoUrl?: string; storeName?: s
             <div className="mr-1 hidden sm:flex sm:items-center sm:gap-1">
               <CurrencySwitcher />
             </div>
+            <ThemeModeToggle />
             <Link
               href="/catalog"
               aria-label={t("search")}

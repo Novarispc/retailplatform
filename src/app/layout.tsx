@@ -3,10 +3,12 @@ import type { Viewport } from "next";
 import { Syne, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { getCricketConfig, getStoreProfile, getThemeColors } from "@/server/services/store";
 import { resolveActiveCricketTheme, buildCricketThemeCss, resolveTagline } from "@/lib/cricket-themes";
+import { THEME_COOKIE, isThemeChoice, themeModeInitScript, type ResolvedMode } from "@/lib/theme-mode";
 
 // Display / headings — editorial, premium, distinctive
 const syne = Syne({
@@ -87,29 +89,42 @@ function buildThemeStyle(
   if (colors.foreground) vars.push(`--foreground:${colors.foreground};`);
   if (colors.muted)      vars.push(`--muted:${colors.muted};`);
   if (colors.border)     vars.push(`--border:${colors.border};`);
-  return vars.length ? `:root{${vars.join("")}}` : "";
+  // Admin custom colors apply to DARK mode only (light keeps the theme palette).
+  return vars.length ? `html[data-mode="dark"]{${vars.join("")}}` : "";
 }
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [locale, themeColors, cricketCfg] = await Promise.all([
+  const [locale, themeColors, cricketCfg, jar] = await Promise.all([
     getLocale(),
     getThemeColors().catch(() => ({})),
     getCricketConfig().catch(() => null),
+    cookies(),
   ]);
-  const mode = cricketCfg?.mode === "light" ? "light" : "dark";
+  // Admin chooses the team theme; the VISITOR chooses light/dark/system from the
+  // header. The admin mode setting only seeds the server-side fallback used until
+  // the pre-paint script resolves the visitor's stored choice.
+  const fallbackMode: ResolvedMode = cricketCfg?.mode === "light" ? "light" : "dark";
+  const stored = jar.get(THEME_COOKIE)?.value;
+  const choice = isThemeChoice(stored) ? stored : "system";
+  // "system" can't be resolved on the server; render the fallback — the inline
+  // script corrects it before first paint.
+  const initialMode: ResolvedMode = choice === "system" ? fallbackMode : choice;
   const cricket = cricketCfg ? resolveActiveCricketTheme(cricketCfg, new Date()) : null;
   const isDefault = !cricket || cricket.slug === "default";
   const tagline = cricket && cricketCfg ? resolveTagline(cricketCfg, cricket) : "";
-  // Every theme (incl. the house default) injects a full dark/light palette +
-  // cinematic background. For the default theme in DARK mode we ALSO layer the
-  // admin-configured custom colors on top (so the Theme Colors panel still wins).
-  const cricketCss = cricket ? buildCricketThemeCss(cricket, mode) : "";
-  const themeStyle = isDefault && mode === "dark" ? buildThemeStyle(themeColors) : "";
+  // Every theme (incl. the house default) injects BOTH dark + light palettes,
+  // scoped under html[data-mode]; the active one follows the visitor's choice.
+  // For the default theme we ALSO layer the admin-configured custom colors on top
+  // (dark mode only — the Theme Colors panel still wins there).
+  const cricketCss = cricket ? buildCricketThemeCss(cricket) : "";
+  const themeStyle = isDefault ? buildThemeStyle(themeColors) : "";
   return (
     <html
       lang={locale}
+      data-mode={initialMode}
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${jakarta.variable} ${mono.variable} h-full antialiased`}
     >
@@ -126,6 +141,9 @@ export default async function RootLayout({
         </style>
       )}
       <body className="aurora-bg flex min-h-full flex-col">
+        {/* Pre-paint: resolve the visitor's stored light/dark/system choice and set
+            html[data-mode] before content renders — kills any flash of wrong mode. */}
+        <script dangerouslySetInnerHTML={{ __html: themeModeInitScript(fallbackMode) }} />
         {cricket && <div className="cricket-tagline" aria-hidden="true">{tagline}</div>}
         <NextIntlClientProvider>
           <Providers>{children}</Providers>

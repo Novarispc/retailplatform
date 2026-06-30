@@ -1,10 +1,9 @@
 export const dynamic = "force-dynamic";
-import { Trophy, Moon, Sun } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { getCricketConfig } from "@/server/services/store";
 import { CRICKET_THEMES, type ThemeMode } from "@/lib/cricket-themes";
 import {
   activateCricketThemeAction,
-  setCricketModeAction,
   saveCricketScheduleAction,
   clearCricketScheduleAction,
   setCricketTaglineAction,
@@ -44,35 +43,16 @@ export default async function AdminThemesPage() {
         </p>
       </div>
 
-      {/* Mode toggle + schedule */}
+      {/* Appearance is now visitor-controlled (header toggle) + schedule */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="glass flex items-center justify-between gap-4 rounded-2xl p-5">
+        <div className="glass flex items-center gap-4 rounded-2xl p-5">
           <div>
-            <p className="text-sm font-semibold">Appearance</p>
-            <p className="mt-0.5 text-xs text-muted">Dark or light variant of the active theme</p>
-          </div>
-          <div className="flex gap-2">
-            {(["dark", "light"] as const).map((m) => (
-              <form
-                key={m}
-                action={async () => {
-                  "use server";
-                  await setCricketModeAction(m);
-                }}
-              >
-                <button
-                  type="submit"
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    mode === m
-                      ? "bg-[var(--accent)] text-white"
-                      : "border border-[var(--border)] text-muted hover:text-foreground"
-                  }`}
-                >
-                  {m === "dark" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
-                  {m === "dark" ? "Dark" : "Light"}
-                </button>
-              </form>
-            ))}
+            <p className="text-sm font-semibold">Appearance (Light / Dark)</p>
+            <p className="mt-0.5 text-xs text-muted">
+              Chosen by each visitor from the storefront header — their preference is remembered
+              across sessions. The active team theme automatically shows its light or dark variant
+              to match. Admins no longer control individual visitors&apos; mode.
+            </p>
           </div>
         </div>
 
@@ -111,7 +91,7 @@ export default async function AdminThemesPage() {
       <div className="glass rounded-2xl p-5">
         <p className="text-sm font-semibold">Background Tagline</p>
         <p className="mt-0.5 mb-3 text-xs text-muted">
-          Centre watermark for <span className="font-semibold text-foreground">{getCricketTheme(activeSlug).name}</span> (shown in dark mode). Leave blank to use the default.
+          Centre watermark for <span className="font-semibold text-foreground">{getCricketTheme(activeSlug).name}</span> (shown in both light &amp; dark). Leave blank to use the default.
         </p>
         <form action={setCricketTaglineAction} className="flex flex-wrap gap-2">
           <input type="hidden" name="slug" value={activeSlug} />

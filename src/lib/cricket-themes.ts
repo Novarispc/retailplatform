@@ -360,12 +360,14 @@ export function resolveTagline(cfg: CricketThemeConfig, theme: CricketTheme): st
   return (cfg.taglines?.[theme.slug]?.trim() || theme.tagline || "United by Cricket");
 }
 
-// Build the injectable CSS for a theme + mode: palette vars, cinematic plate,
-// and EITHER the glowing centre tagline (dark) OR the team crest (light).
-export function buildCricketThemeCss(theme: CricketTheme, mode: ThemeMode): string {
+// Build the CSS for ONE mode of a theme, scoped under html[data-mode="<mode>"]
+// so the active mode is chosen by the visitor at runtime (no refresh, no admin
+// involvement): palette vars, cinematic plate and the glowing centre tagline.
+function buildModeCss(theme: CricketTheme, mode: ThemeMode): string {
   const style = theme[mode];
   if (!style.palette) return "";
   const p = style.palette;
+  const scope = `html[data-mode="${mode}"]`;
   const root = [
     `--background:${p.background};`,
     `--surface:${p.surface};`,
@@ -391,7 +393,7 @@ export function buildCricketThemeCss(theme: CricketTheme, mode: ThemeMode): stri
     ? `drop-shadow(0 0 30px ${p.accent}59) drop-shadow(0 0 64px ${p.accent3}3d) drop-shadow(0 12px 24px rgba(0,0,0,0.42))`
     : `drop-shadow(0 0 22px ${p.accent}4d) drop-shadow(0 0 50px ${p.accent3}33) drop-shadow(0 10px 20px rgba(0,0,0,0.16))`;
   const tagline =
-    `.cricket-tagline{position:fixed;inset:0;z-index:-1;display:flex;align-items:center;justify-content:center;` +
+    `${scope} .cricket-tagline{position:fixed;inset:0;z-index:-1;display:flex;align-items:center;justify-content:center;` +
     `text-align:center;padding:0 6vw;font-family:var(--font-display),sans-serif;font-weight:800;` +
     `font-size:clamp(2.4rem,7.6vw,6.6rem);line-height:1.04;letter-spacing:-0.02em;text-transform:uppercase;` +
     `background-image:${grad};-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;` +
@@ -401,8 +403,17 @@ export function buildCricketThemeCss(theme: CricketTheme, mode: ThemeMode): stri
     `pointer-events:none;user-select:none;}`;
 
   return [
-    `:root{${root}}`,
-    `.aurora-bg::before{background:${style.background} !important;filter:blur(40px) !important;height:100vh !important;opacity:1 !important;}`,
+    `${scope}{${root}}`,
+    `${scope} .aurora-bg::before{background:${style.background} !important;filter:blur(40px) !important;height:100vh !important;opacity:1 !important;}`,
     tagline,
   ].join("\n");
+}
+
+// Build the injectable CSS for a theme covering BOTH dark and light modes. The
+// active mode is selected by the html[data-mode] attribute, set per visitor
+// (cookie + localStorage) — so the admin-chosen team theme adapts to whichever
+// mode the visitor prefers. Example: admin picks RCB → a visitor in light mode
+// sees the RCB light variant, a visitor in dark mode sees the RCB dark variant.
+export function buildCricketThemeCss(theme: CricketTheme): string {
+  return [buildModeCss(theme, "dark"), buildModeCss(theme, "light")].filter(Boolean).join("\n");
 }
