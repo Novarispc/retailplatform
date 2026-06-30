@@ -6,9 +6,10 @@ import { getLocale } from "next-intl/server";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { getCricketConfig, getStoreProfile, getThemeColors } from "@/server/services/store";
+import { getAnimationConfig, getCricketConfig, getStoreProfile, getThemeColors } from "@/server/services/store";
 import { resolveActiveCricketTheme, buildCricketThemeCss, resolveTagline } from "@/lib/cricket-themes";
 import { THEME_COOKIE, isThemeChoice, themeModeInitScript, type ResolvedMode } from "@/lib/theme-mode";
+import { AnimationLayer } from "@/lib/animations/animation-layer";
 
 // Display / headings — editorial, premium, distinctive
 const syne = Syne({
@@ -96,10 +97,11 @@ function buildThemeStyle(
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [locale, themeColors, cricketCfg, jar] = await Promise.all([
+  const [locale, themeColors, cricketCfg, animCfg, jar] = await Promise.all([
     getLocale(),
     getThemeColors().catch(() => ({})),
     getCricketConfig().catch(() => null),
+    getAnimationConfig().catch(() => ({ active: [] })),
     cookies(),
   ]);
   // Admin chooses the team theme; the VISITOR chooses light/dark/system from the
@@ -145,6 +147,8 @@ export default async function RootLayout({
             html[data-mode] before content renders — kills any flash of wrong mode. */}
         <script dangerouslySetInnerHTML={{ __html: themeModeInitScript(fallbackMode) }} />
         {cricket && <div className="cricket-tagline" aria-hidden="true">{tagline}</div>}
+        {/* Theme animations — lazy-loaded, respects prefers-reduced-motion + user opt-out */}
+        <AnimationLayer active={animCfg.active} />
         <NextIntlClientProvider>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>

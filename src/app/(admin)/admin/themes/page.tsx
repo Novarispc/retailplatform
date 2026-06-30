@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { Trophy } from "lucide-react";
-import { getCricketConfig } from "@/server/services/store";
+import { getCricketConfig, getAnimationConfig } from "@/server/services/store";
 import { CRICKET_THEMES, type ThemeMode } from "@/lib/cricket-themes";
 import {
   activateCricketThemeAction,
@@ -9,6 +9,7 @@ import {
   setCricketTaglineAction,
 } from "@/server/actions/store";
 import { getCricketTheme, resolveTagline } from "@/lib/cricket-themes";
+import { AnimationControls } from "./animation-controls";
 
 export const metadata = { title: "Cricket Themes · Admin", robots: { index: false } };
 
@@ -24,7 +25,7 @@ function Swatch({ color, label }: { color?: string; label: string }) {
 }
 
 export default async function AdminThemesPage() {
-  const cfg = await getCricketConfig();
+  const [cfg, animCfg] = await Promise.all([getCricketConfig(), getAnimationConfig()]);
   const activeSlug = cfg.activeSlug || "default";
   const mode: ThemeMode = cfg.mode === "light" ? "light" : "dark";
 
@@ -107,6 +108,8 @@ export default async function AdminThemesPage() {
           </button>
         </form>
       </div>
+
+      <AnimationControls active={animCfg.active} />
 
       <ThemeGrid title="International" themes={international} activeSlug={activeSlug} mode={mode} />
       <ThemeGrid title="IPL Franchises" themes={ipl} activeSlug={activeSlug} mode={mode} />

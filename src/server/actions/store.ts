@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { assert } from "@/lib/rbac";
 import { logger } from "@/lib/logger";
-import { getCricketConfig, updateCricketConfig, updateHeroSettings, updateLoyaltySettings, updateStoreProfile, updateThemeColors } from "@/server/services/store";
+import { getCricketConfig, updateCricketConfig, updateHeroSettings, updateLoyaltySettings, updateStoreProfile, updateThemeColors, updateAnimationConfig } from "@/server/services/store";
+import { ALL_ANIMATION_IDS, type AnimationId } from "@/lib/animations/registry";
 import { getCricketTheme, type ThemeMode } from "@/lib/cricket-themes";
 import { getStorage } from "@/lib/storage";
 
@@ -133,6 +134,27 @@ export async function setCricketTaglineAction(formData: FormData) {
 export async function clearCricketScheduleAction() {
   await requireAdmin();
   await updateCricketConfig({ scheduledSlug: "", scheduledStart: "", scheduledEnd: "" });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+// ── Theme animations ──
+
+export async function setThemeAnimationsAction(formData: FormData) {
+  await requireAdmin();
+  // Checkbox values arrive under "animations". Validate against the registry so
+  // unknown ids can never persist.
+  const raw = formData.getAll("animations").map(String);
+  const valid = new Set<string>(ALL_ANIMATION_IDS);
+  const active = raw.filter((id) => valid.has(id)) as AnimationId[];
+  await updateAnimationConfig({ active });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+}
+
+export async function clearThemeAnimationsAction() {
+  await requireAdmin();
+  await updateAnimationConfig({ active: [] });
   revalidatePath("/", "layout");
   revalidatePath("/admin/themes");
 }

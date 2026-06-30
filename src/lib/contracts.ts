@@ -103,5 +103,10 @@ export const razorpayWebhookEventSchema = z.object({
         }),
       })
       .optional(),
+    qr_code: z
+      .object({
+        entity: z.object({ id: z.string() }),
+      })
+      .optional(),
   }),
 });

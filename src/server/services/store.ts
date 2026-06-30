@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getActiveTenant } from "@/lib/tenant";
 import { DEFAULT_CRICKET_CONFIG, type CricketThemeConfig } from "@/lib/cricket-themes";
+import { DEFAULT_ANIMATION_CONFIG, type AnimationConfig } from "@/lib/animations/registry";
 
 export type ThemeColors = {
   accent?: string;        // primary CTA / brand color
@@ -109,6 +110,26 @@ export async function updateCricketConfig(patch: Partial<CricketThemeConfig>) {
   const existing = (themeJson.cricket as Partial<CricketThemeConfig>) ?? {};
   const cricket = { ...DEFAULT_CRICKET_CONFIG, ...existing, ...patch };
   const nextThemeJson = { ...themeJson, cricket };
+  return prisma.storeSettings.upsert({
+    where: { storeId: store.id },
+    create: { storeId: store.id, themeJson: nextThemeJson },
+    update: { themeJson: nextThemeJson },
+  });
+}
+
+export async function getAnimationConfig(): Promise<AnimationConfig> {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const saved = (themeJson.animations as Partial<AnimationConfig>) ?? {};
+  return { ...DEFAULT_ANIMATION_CONFIG, ...saved };
+}
+
+export async function updateAnimationConfig(patch: Partial<AnimationConfig>) {
+  const store = await getStoreWithSettings();
+  const themeJson = (store.settings?.themeJson ?? {}) as Record<string, unknown>;
+  const existing = (themeJson.animations as Partial<AnimationConfig>) ?? {};
+  const animations = { ...DEFAULT_ANIMATION_CONFIG, ...existing, ...patch };
+  const nextThemeJson = { ...themeJson, animations };
   return prisma.storeSettings.upsert({
     where: { storeId: store.id },
     create: { storeId: store.id, themeJson: nextThemeJson },

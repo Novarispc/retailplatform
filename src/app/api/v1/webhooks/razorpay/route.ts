@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const { event: name, payload } = parsed.data;
 
   // Only act on successful payment/order events; ignore others gracefully.
-  if (name === "payment.captured" || name === "order.paid") {
+  if (name === "payment.captured" || name === "order.paid" || name === "qr_code.credited") {
     const providerOrderId =
       payload.payment?.entity.order_id ?? payload.order?.entity.id;
     const providerPaymentId = payload.payment?.entity.id ?? null;
