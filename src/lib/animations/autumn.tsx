@@ -18,7 +18,7 @@ export default function AutumnFall() {
     resize();
     window.addEventListener("resize", resize);
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 28; i++) {
       leaves.push({
         x: Math.random() * W, y: Math.random() * H,
         r: Math.random() * 8 + 5,

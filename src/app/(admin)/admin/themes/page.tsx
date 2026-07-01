@@ -92,7 +92,7 @@ export default async function AdminThemesPage() {
       <div className="glass rounded-2xl p-5">
         <p className="text-sm font-semibold">Background Tagline</p>
         <p className="mt-0.5 mb-3 text-xs text-muted">
-          Centre watermark for <span className="font-semibold text-foreground">{getCricketTheme(activeSlug).name}</span> (shown in both light &amp; dark). Leave blank to use the default.
+          Centre watermark for <span className="font-semibold text-foreground">Store Homepage</span> (shown in both light &amp; dark). Leave blank to use the default.
         </p>
         <form action={setCricketTaglineAction} className="flex flex-wrap gap-2">
           <input type="hidden" name="slug" value={activeSlug} />

@@ -7,7 +7,8 @@ export type AnimationId =
   | "wind"
   | "rainfall"
   | "lanterns"
-  | "fireworks";
+  | "fireworks"
+  | "fireflies";
 
 export interface AnimationDef {
   id: AnimationId;
@@ -67,6 +68,13 @@ export const ANIMATION_REGISTRY: AnimationDef[] = [
     emoji: "🎆",
     description: "Fireworks",
     load: () => import("./fireworks"),
+  },
+  {
+    id: "fireflies",
+    label: "Fireflies",
+    emoji: "✨",
+    description: "Glowing Drifting Fireflies",
+    load: () => import("./fireflies"),
   },
 ];
 

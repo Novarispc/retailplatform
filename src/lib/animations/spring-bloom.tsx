@@ -18,7 +18,7 @@ export default function SpringBloom() {
     resize();
     window.addEventListener("resize", resize);
 
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 32; i++) {
       petals.push({
         x: Math.random() * W, y: Math.random() * H,
         r: Math.random() * 7 + 4,
