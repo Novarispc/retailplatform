@@ -21,7 +21,7 @@ export default function SpringBloom() {
     for (let i = 0; i < 32; i++) {
       petals.push({
         x: Math.random() * W, y: Math.random() * H,
-        r: Math.random() * 7 + 4,
+        r: Math.random() * 4 + 2.5,
         angle: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 0.04,
         speed: Math.random() * 1.2 + 0.3,

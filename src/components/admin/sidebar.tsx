@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, ShoppingCart, Users, Store, Megaphone, TrendingUp, Truck, Star, LayoutTemplate, Film, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminModeToggle } from "./admin-mode-toggle";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -29,7 +30,8 @@ export function AdminSidebar({ logoUrl, storeName }: { logoUrl?: string; storeNa
     <aside className="glass sticky top-4 h-fit w-full rounded-2xl p-3 lg:w-60">
       <div className="mb-4 flex items-center gap-2 px-2 py-2 font-semibold">
         <Image src={logo} alt={name} width={40} height={40} className="h-10 w-10 rounded-lg ring-1 ring-white/20" />
-        <span className="hidden sm:inline">Admin</span>
+        <span className="hidden flex-1 sm:inline">Admin</span>
+        <AdminModeToggle />
       </div>
       <nav className="flex gap-1 lg:flex-col">
         {LINKS.map((l) => {

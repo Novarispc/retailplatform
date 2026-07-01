@@ -21,7 +21,7 @@ export default function AutumnFall() {
     for (let i = 0; i < 28; i++) {
       leaves.push({
         x: Math.random() * W, y: Math.random() * H,
-        r: Math.random() * 8 + 5,
+        r: Math.random() * 5 + 3,
         angle: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 0.05,
         speed: Math.random() * 1.5 + 0.5,
