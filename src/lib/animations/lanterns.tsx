@@ -27,7 +27,7 @@ export default function FloatingLanterns() {
     window.addEventListener("resize", resize);
 
     function make(initial: boolean): Lantern {
-      const w = Math.random() * 14 + 16;
+      const w = Math.random() * 9 + 11;
       return {
         x: Math.random() * W,
         y: initial ? Math.random() * H : H + Math.random() * 120 + 40,
