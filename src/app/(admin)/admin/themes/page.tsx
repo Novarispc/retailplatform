@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { Trophy } from "lucide-react";
-import { getCricketConfig, getAnimationConfig } from "@/server/services/store";
+import { getCricketConfig, getAnimationConfig, getStoreProfile } from "@/server/services/store";
 import { CRICKET_THEMES, type ThemeMode } from "@/lib/cricket-themes";
 import {
   activateCricketThemeAction,
@@ -25,9 +25,14 @@ function Swatch({ color, label }: { color?: string; label: string }) {
 }
 
 export default async function AdminThemesPage() {
-  const [cfg, animCfg] = await Promise.all([getCricketConfig(), getAnimationConfig()]);
+  const [cfg, animCfg, profile] = await Promise.all([
+    getCricketConfig(),
+    getAnimationConfig(),
+    getStoreProfile().catch(() => ({})),
+  ]);
   const activeSlug = cfg.activeSlug || "default";
   const mode: ThemeMode = cfg.mode === "light" ? "light" : "dark";
+  const storeName = (profile as { storeName?: string }).storeName || "Store";
 
   const international = CRICKET_THEMES.filter((t) => t.category === "international");
   const ipl = CRICKET_THEMES.filter((t) => t.category === "ipl");
@@ -44,20 +49,12 @@ export default async function AdminThemesPage() {
         </p>
       </div>
 
-      {/* Appearance is now visitor-controlled (header toggle) + schedule */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="glass flex items-center gap-4 rounded-2xl p-5">
-          <div>
-            <p className="text-sm font-semibold">Appearance (Light / Dark)</p>
-            <p className="mt-0.5 text-xs text-muted">
-              Chosen by each visitor from the storefront header — their preference is remembered
-              across sessions. The active team theme automatically shows its light or dark variant
-              to match. Admins no longer control individual visitors&apos; mode.
-            </p>
-          </div>
-        </div>
+      {/* Appearance (light/dark) is visitor-controlled from the header, so that
+          panel was removed — its space now holds Theme Animations. */}
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+        <AnimationControls active={animCfg.active} />
 
-        <div className="glass flex flex-col gap-3 rounded-2xl p-5">
+        <div className="glass flex h-fit flex-col gap-3 rounded-2xl p-5">
           <p className="text-sm font-semibold">Auto-Schedule</p>
           <form action={saveCricketScheduleAction} className="flex flex-col gap-3">
             <select
@@ -109,10 +106,8 @@ export default async function AdminThemesPage() {
         </form>
       </div>
 
-      <AnimationControls active={animCfg.active} />
-
-      <ThemeGrid title="International" themes={international} activeSlug={activeSlug} mode={mode} />
-      <ThemeGrid title="IPL Franchises" themes={ipl} activeSlug={activeSlug} mode={mode} />
+      <ThemeGrid title="International" themes={international} activeSlug={activeSlug} storeName={storeName} mode={mode} />
+      <ThemeGrid title="IPL Franchises" themes={ipl} activeSlug={activeSlug} storeName={storeName} mode={mode} />
 
       <p className="text-center text-xs text-muted">
         Activating instantly restyles the entire storefront — background, buttons, cards, navigation,
@@ -126,11 +121,13 @@ function ThemeGrid({
   title,
   themes,
   activeSlug,
+  storeName,
   mode,
 }: {
   title: string;
   themes: typeof CRICKET_THEMES;
   activeSlug: string;
+  storeName: string;
   mode: ThemeMode;
 }) {
   return (
@@ -159,22 +156,18 @@ function ThemeGrid({
 
               <div className="flex flex-1 flex-col gap-3 p-4">
                 <div>
-                  <p className="text-sm font-semibold">{theme.name}</p>
+                  <p className="text-sm font-semibold">{isDefault ? storeName : theme.name}</p>
                   <p className="mt-1 text-xs leading-relaxed text-muted">{theme.description}</p>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  {pal ? (
-                    <>
-                      <Swatch color={pal.accent} label="Accent" />
-                      <Swatch color={pal.accent2} label="Accent 2" />
-                      <Swatch color={pal.background} label="Background" />
-                      <Swatch color={pal.surface} label="Surface" />
-                    </>
-                  ) : (
-                    <span className="text-xs italic text-muted">Uses admin theme colors</span>
-                  )}
-                </div>
+                {pal && (
+                  <div className="flex items-center gap-1.5">
+                    <Swatch color={pal.accent} label="Accent" />
+                    <Swatch color={pal.accent2} label="Accent 2" />
+                    <Swatch color={pal.background} label="Background" />
+                    <Swatch color={pal.surface} label="Surface" />
+                  </div>
+                )}
 
                 <div className="mt-auto pt-2">
                   {isActive ? (
