@@ -36,10 +36,18 @@ export function AnnouncementBar({ announcement }: { announcement?: Announcement 
 
   return (
     <div
-      className={`relative z-50 ${festival ? "" : "bg-gradient-to-r from-[var(--accent)] via-[var(--accent-2)] to-[var(--accent-3)] text-[#06070d]"}`}
+      className={`relative z-50 isolate ${festival ? "" : "bg-gradient-to-r from-[var(--accent)] via-[var(--accent-2)] to-[var(--accent-3)]"}`}
       style={wrapStyle}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-center gap-3 px-10 py-2 text-center text-xs font-semibold sm:text-sm">
+      {/* Dark scrim so white text stays legible across ANY theme's gradient —
+          a fixed text color can't guarantee contrast against arbitrary accent
+          combos (e.g. RCB's near-black accent-2 swallowed dark text). */}
+      {!festival && <div className="pointer-events-none absolute inset-0 bg-black/30" />}
+      <div
+        className={`relative mx-auto flex max-w-6xl items-center justify-center gap-3 px-10 py-2 text-center text-xs font-semibold sm:text-sm ${
+          festival ? "" : "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]"
+        }`}
+      >
         {festival ? (
           <span className="hidden shrink-0 sm:block">{announcement!.emoji}</span>
         ) : (
@@ -48,7 +56,9 @@ export function AnnouncementBar({ announcement }: { announcement?: Announcement 
         <span>{festival ? announcement!.text : "Official IPL 2025 Merchandise Now Available!"}</span>
         <Link
           href="/catalog"
-          className="shrink-0 rounded-full bg-[#06070d] px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white transition-transform hover:scale-105"
+          className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide transition-transform hover:scale-105 ${
+            festival ? "bg-[#06070d] text-white" : "bg-black/70 text-white"
+          }`}
         >
           Buy now
         </Link>
@@ -59,7 +69,9 @@ export function AnnouncementBar({ announcement }: { announcement?: Announcement 
           sessionStorage.setItem(dismissKey, "1");
         }}
         aria-label="Dismiss announcement"
-        className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full transition-colors hover:bg-[#06070d]/15"
+        className={`absolute right-3 top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full transition-colors ${
+          festival ? "hover:bg-[#06070d]/15" : "text-white hover:bg-white/15"
+        }`}
       >
         <X className="h-4 w-4" />
       </button>
