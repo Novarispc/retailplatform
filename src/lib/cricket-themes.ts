@@ -64,7 +64,9 @@ function idealText(bg: string): string {
 
 // DARK branded palette: PRIMARY drives the background, SECONDARY the accents.
 function brandedDark(primary: string, accent: string, accent2: string, accent3: string): Palette {
-  const lightBg = relLum(primary) > 0.20;
+  // Same crossover point idealText() uses — keeps this in sync so foreground
+  // text always meets WCAG AA (4.5:1) against the primary-colour background.
+  const lightBg = relLum(primary) > 0.18;
   const fg = lightBg ? "#0d0d11" : "#ffffff";
   return {
     accent, accent2, accent3,
