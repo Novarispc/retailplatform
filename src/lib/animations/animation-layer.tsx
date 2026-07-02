@@ -24,7 +24,7 @@ function AnimationWrapper({
 }) {
   const [opacity, setOpacity] = useState(0);
   const doneRef = useRef(onDone);
-  doneRef.current = onDone;
+  useEffect(() => { doneRef.current = onDone; });
 
   // Fade in on mount.
   useEffect(() => {
@@ -70,6 +70,10 @@ export function AnimationLayer({ active }: Props) {
   const [rendering, setRendering] = useState<AnimationId[]>([]);
   const [leaving, setLeaving] = useState<Set<AnimationId>>(new Set());
   const prevActive = useRef<AnimationId[]>([]);
+  const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear any pending dismiss timeout if the layer unmounts mid-fade.
+  useEffect(() => () => { if (dismissTimer.current) clearTimeout(dismissTimer.current); }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -127,7 +131,7 @@ export function AnimationLayer({ active }: Props) {
     try { localStorage.setItem(STORAGE_KEY, "true"); } catch {}
     // Fade out all currently rendering, then disable.
     setLeaving(new Set(rendering));
-    setTimeout(() => setEnabled(false), FADE_MS + 100);
+    dismissTimer.current = setTimeout(() => setEnabled(false), FADE_MS + 100);
   }
 
   if (!mounted || !enabled || (rendering.length === 0 && !dismissing)) return null;

@@ -160,12 +160,20 @@ export async function createCheckoutOrder(
       }
     }
 
-    // Count the coupon redemption atomically with the order.
+    // Count the coupon redemption atomically with the order. Re-check the
+    // redemption cap inside the WHERE clause — getValidCoupon's read happened
+    // outside this transaction, so two concurrent checkouts on the last slot
+    // could otherwise both pass validation and both increment past the cap.
     if (coupon) {
-      await tx.coupon.update({
-        where: { id: coupon.id },
+      const guard = await tx.coupon.updateMany({
+        where: coupon.maxRedemptions != null
+          ? { id: coupon.id, timesRedeemed: { lt: coupon.maxRedemptions } }
+          : { id: coupon.id },
         data: { timesRedeemed: { increment: 1 } },
       });
+      if (guard.count === 0) {
+        throw new CheckoutError("This coupon has just reached its redemption limit.");
+      }
     }
     return created;
   });
