@@ -47,17 +47,23 @@ export default async function HomePage() {
   const trendingProducts = trendingSlugs.length ? await listProductsBySlugs(trendingSlugs) : [];
   const heroSource = trendingProducts.length ? trendingProducts : featured;
 
-  const heroProducts: HeroProduct[] = heroSource.map((p) => ({
-    slug: p.slug,
-    name: p.name,
-    blurb: p.category?.name ?? "",
-    price: formatMoney(p.variants?.[0]?.priceMinor ?? 0, p.currency as CurrencyCode),
-    imageUrl: p.images?.[0]?.url ?? null,
-    // include variant id and priceMinor so hero can quick-add to cart
-    defaultVariantId: p.variants?.[0]?.id ?? null,
-    priceMinor: p.variants?.[0]?.priceMinor ?? 0,
-    currency: p.currency as CurrencyCode,
-  }));
+  const heroProducts: HeroProduct[] = heroSource.map((p) => {
+    // Variant priceMinor is an optional override — fall back to the
+    // product's own price, same as effectiveUnitPrice() in pricing.ts.
+    // A variant with no override previously rendered as ₹0.
+    const unitPriceMinor = p.variants?.[0]?.priceMinor ?? p.priceMinor ?? 0;
+    return {
+      slug: p.slug,
+      name: p.name,
+      blurb: p.category?.name ?? "",
+      price: formatMoney(unitPriceMinor, p.currency as CurrencyCode),
+      imageUrl: p.images?.[0]?.url ?? null,
+      // include variant id and priceMinor so hero can quick-add to cart
+      defaultVariantId: p.variants?.[0]?.id ?? null,
+      priceMinor: unitPriceMinor,
+      currency: p.currency as CurrencyCode,
+    };
+  });
 
   return (
     <div className="space-y-24 pb-8">
